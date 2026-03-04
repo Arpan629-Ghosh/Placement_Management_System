@@ -10,23 +10,30 @@ import { isAdmin } from "../../middlewares/role/middleware.js";
 
 const router = express.Router();
 
+router.get("/dashboard", authMiddleware, isAdmin, (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to Admin Dashboard",
+    user: req.user,
+  });
+});
 router.get(
   "/recruiters/pending",
   authMiddleware,
   isAdmin,
-  getPendingRecruiters
+  getPendingRecruiters,
 );
 router.post(
   "/recruiters/approve/:recruiterId",
   authMiddleware,
   isAdmin,
-  approveRecruiter
+  approveRecruiter,
 );
 router.post(
   "/recruiters/reject/:recruiterId",
   authMiddleware,
   isAdmin,
-  rejectRecruiter
+  rejectRecruiter,
 );
 
 export default router;
