@@ -34,16 +34,14 @@ const userSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["active", "blocked", "pending"],
-      default: function () {
-        return this.role === "recruiter" ? "pending" : "active";
-      },
+      enum: ["active", "blocked"],
+      default: "active",
     },
 
     resetPasswordToken: String,
     resetPasswordExpires: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = mongoose.model("User", userSchema);

@@ -11,8 +11,10 @@ import {
   getStudentProfile,
   updateStudentProfile,
   uploadResume,
+  uploadProfilePicture,
 } from "../../controllers/student/studentController.js";
 import upload from "../../middlewares/upload/multer.js";
+import imageUpload from "../../middlewares/upload/imageUpload.js";
 
 const router = express.Router();
 
@@ -46,6 +48,14 @@ router.post(
   isStudent,
   upload.single("resume"),
   uploadResume,
+);
+
+router.post(
+  "/upload-profile-picture",
+  authMiddleware,
+  isStudent,
+  imageUpload.single("profilePicture"),
+  uploadProfilePicture,
 );
 
 router.get("/jobs", authMiddleware, isStudent, getAvailaibleJobs);

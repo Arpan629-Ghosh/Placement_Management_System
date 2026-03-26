@@ -37,6 +37,20 @@ const applicationSchema = new mongoose.Schema(
       default: "applied",
     },
 
+    interview: {
+      scheduled: {
+        type: Boolean,
+        default: false,
+      },
+      date: Date,
+      mode: {
+        type: String,
+        enum: ["online", "offline"],
+      },
+      location: String,
+      meetingLink: String,
+    },
+
     appliedAt: {
       type: Date,
       default: Date.now,

@@ -2,6 +2,7 @@ import cloudinary from "../../config/cloudinary.js";
 import StudentProfile from "../../models/StudentProfile.js";
 import Job from "../../models/Job.js";
 import Application from "../../models/Application.js";
+import fs from "fs";
 
 export const createStudentProfile = async (req, res) => {
   try {
@@ -145,19 +146,91 @@ export const uploadResume = async (req, res) => {
       });
     }
 
-    if (studentProfile.resume && studentProfile.resume.public_id) {
-      await cloudinary.uploader.destroy(profile.resume.public_id, {
+    // 🗑 Delete old resume from Cloudinary
+    if (studentProfile.resume?.public_id) {
+      await cloudinary.uploader.destroy(studentProfile.resume.public_id, {
         resource_type: "raw",
       });
     }
 
-    //upload to cloudinary
+    // ☁️ Upload new resume
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: "raw",
+      folder: "pms/resumes",
+      format: "pdf",
+    });
+
+    // 🧹 Delete local file (VERY IMPORTANT)
+    fs.unlinkSync(req.file.path);
+
+    // 💾 Save in DB
+    studentProfile.resume = {
+      url: result.secure_url,
+      public_id: result.public_id,
+    };
+
+    await studentProfile.save();
+
+    console.log(req.file);
+
+    res.status(200).json({
+      success: true,
+      message: "Resume uploaded successfully",
+      resume: studentProfile.resume,
+    });
+  } catch (error) {
+    console.error(error);
+
+    // cleanup if error occurs
+    if (req.file?.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Profile picture file is required",
+      });
+    }
+
+    const studentProfile = await StudentProfile.findOne({ user: userId });
+
+    if (!studentProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Student profile not found",
+      });
+    }
+
+    // Delete old profile picture if exists
+    if (
+      studentProfile.profilePicture &&
+      studentProfile.profilePicture.public_id
+    ) {
+      await cloudinary.uploader.destroy(
+        studentProfile.profilePicture.public_id,
+      );
+    }
+
+    // Upload new profile picture to cloudinary
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
           {
-            resource_type: "raw",
-            folder: "pms/resumes",
+            folder: "pms/profile-pictures",
+            resource_type: "auto",
+            transformation: [{ width: 400, height: 400, crop: "fill" }],
           },
           (error, result) => {
             if (error) reject(error);
@@ -167,8 +240,8 @@ export const uploadResume = async (req, res) => {
         .end(req.file.buffer);
     });
 
-    // Save new resume in database
-    studentProfile.resume = {
+    // Save new profile picture in database
+    studentProfile.profilePicture = {
       url: result.secure_url,
       public_id: result.public_id,
     };
@@ -177,8 +250,8 @@ export const uploadResume = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Resume uploaded successfully",
-      resume: studentProfile.resume,
+      message: "Profile picture uploaded successfully",
+      profilePicture: studentProfile.profilePicture,
     });
   } catch (error) {
     console.error(error);

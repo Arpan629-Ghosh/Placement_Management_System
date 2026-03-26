@@ -17,20 +17,18 @@ router.get("/dashboard", authMiddleware, isAdmin, (req, res) => {
     user: req.user,
   });
 });
-router.get(
-  "/recruiters/pending",
-  authMiddleware,
-  isAdmin,
-  getPendingRecruiters,
-);
-router.post(
-  "/recruiters/approve/:recruiterId",
+
+router.get("/recruiters/all", authMiddleware, isAdmin, getPendingRecruiters);
+
+router.patch(
+  "/recruiters/:recruiterId/approve",
   authMiddleware,
   isAdmin,
   approveRecruiter,
 );
-router.post(
-  "/recruiters/reject/:recruiterId",
+
+router.patch(
+  "/recruiters/:recruiterId/reject",
   authMiddleware,
   isAdmin,
   rejectRecruiter,

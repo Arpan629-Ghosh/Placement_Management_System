@@ -1,17 +1,18 @@
+import RecruiterProfile from "../../models/RecruiterProfile.js";
 import User from "../../models/User.js";
 import { sendEmail } from "../../utils/sendEmail.js";
 
+// ✅ GET Pending Recruiters
 export const getPendingRecruiters = async (req, res) => {
   try {
-    const pendingRecruiters = await User.find({
-      role: "recruiter",
-      status: "pending",
-      emailVerified: true,
-    }).select("-passwordHash");
+    const pendingRecruiters = await RecruiterProfile.find({
+      approvalStatus: ["pending", "approved", "rejected"],
+    }).populate("user", "name email role");
 
     return res.status(200).json({
-      sucess: true,
-      recruiter: pendingRecruiters,
+      success: true,
+      total: pendingRecruiters.length,
+      recruiters: pendingRecruiters,
     });
   } catch (error) {
     console.error("Get Pending Recruiters Error:", error);
@@ -22,39 +23,41 @@ export const getPendingRecruiters = async (req, res) => {
   }
 };
 
+// ✅ APPROVE Recruiter
 export const approveRecruiter = async (req, res) => {
   try {
     const { recruiterId } = req.params;
 
-    const recruiter = await User.findOne({
-      _id: recruiterId,
-      role: "recruiter",
-    });
+    const recruiterProfile = await RecruiterProfile.findOne({
+      user: recruiterId,
+    }).populate("user");
 
-    if (!recruiter) {
+    if (!recruiterProfile) {
       return res.status(404).json({
         success: false,
-        message: "Recruiter not found",
+        message: "Recruiter profile not found",
       });
     }
 
-    if (recruiter.status !== "pending") {
+    if (recruiterProfile.approvalStatus === "approved") {
       return res.status(400).json({
         success: false,
-        message: "Recruiter already processed",
+        message: "Recruiter already approved",
       });
     }
 
-    recruiter.status = "active";
-    await recruiter.save();
+    recruiterProfile.approvalStatus = "approved";
+    await recruiterProfile.save();
 
+    // Send Email
+    console.log("Sending Email to: ", recruiterProfile.user.email);
     await sendEmail({
-      to: recruiter.email,
+      to: recruiterProfile.user.email,
       subject: "Your Account Has Been Approved",
       html: `
-        <h2>Congratulations and Welcome!</h2>
-        <p>Your recruiter account has been approved by the admin.</p>
-        <p>You can now log in and access your dashboard to recruit our talents.</p>
+        <h2>Congratulations 🎉</h2>
+        <p>Your recruiter account has been approved.</p>
+        <p>You can now post jobs and access full dashboard.</p>
       `,
     });
 
@@ -71,37 +74,40 @@ export const approveRecruiter = async (req, res) => {
   }
 };
 
+// ✅ REJECT Recruiter
 export const rejectRecruiter = async (req, res) => {
   try {
     const { recruiterId } = req.params;
-    const recruiter = await User.findOne({
-      _id: recruiterId,
-      role: "recruiter",
-    });
 
-    if (!recruiter) {
+    const recruiterProfile = await RecruiterProfile.findOne({
+      user: recruiterId,
+    }).populate("user");
+
+    if (!recruiterProfile) {
       return res.status(404).json({
         success: false,
-        message: "Recruiter not found",
+        message: "Recruiter profile not found",
       });
     }
 
-    if (recruiter.status !== "pending") {
+    if (recruiterProfile.approvalStatus === "rejected") {
       return res.status(400).json({
         success: false,
-        message: "Recruiter already proccessed",
+        message: "Recruiter already rejected",
       });
     }
 
-    recruiter.status = "blocked";
-    await recruiter.save();
+    recruiterProfile.approvalStatus = "rejected";
+    await recruiterProfile.save();
 
+    // Send Email
+    console.log("Sending Email to: ", recruiterProfile.user.email);
     await sendEmail({
-      to: recruiter.email,
-      subject: "Sorry! Registration Has Been Rejected",
+      to: recruiterProfile.user.email,
+      subject: "Recruiter Application Rejected",
       html: `
-        <h2>Recruiter Application Rejected</h2>
-        <p>We regret to inform you that your recruiter account request has been rejected.</p>
+        <h2>Application Rejected</h2>
+        <p>We regret to inform you that your recruiter account was not approved.</p>
         <p>You may contact admin for more details.</p>
       `,
     });
