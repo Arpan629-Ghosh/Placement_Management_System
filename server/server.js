@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth/authRoutes.js";
 import adminRoutes from "./routes/admin/adminRoutes.js";
 import studentRoutes from "./routes/student/studentRoutes.js";
 import recruiterRoutes from "./routes/recruiter/recruiterRoutes.js";
+import notificationRoutes from "./routes/notification/notificationRoutes.js";
 
 // Connect Database
 connectDB();
@@ -26,6 +27,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/recruiter", recruiterRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 //Server Port
 const PORT = process.env.PORT || 5000;

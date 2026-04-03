@@ -1,5 +1,6 @@
 import Application from "../../models/Application.js";
 import Job from "../../models/Job.js";
+import { createNotification } from "../../services/notificationService.js";
 
 export const getApplicationsByJob = async (req, res) => {
   try {
@@ -59,6 +60,13 @@ export const updateApplicationStatus = async (req, res) => {
     application.status = status;
     await application.save();
 
+    await createNotification({
+      recipient: application.student,
+      type: "application",
+      message: `Your application status changed to ${status}`,
+      meta: { applicationId: application._id },
+    });
+
     res.status(200).json({
       success: true,
       message: "Application status updated",
@@ -113,6 +121,13 @@ export const scheduleInterview = async (req, res) => {
     };
 
     await application.save();
+
+    await createNotification({
+      recipient: application.student,
+      type: "interview",
+      message: `Interview scheduled on ${date}`,
+      meta: { applicationId: application._id },
+    });
 
     res.status(200).json({
       success: true,

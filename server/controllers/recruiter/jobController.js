@@ -1,4 +1,6 @@
 import Job from "../../models/Job.js";
+import User from "../../models/User.js";
+import { createNotification } from "../../services/notificationService.js";
 
 export const createJob = async (req, res) => {
   try {
@@ -18,6 +20,20 @@ export const createJob = async (req, res) => {
       recruiter: recruiterId,
       ...req.body,
     });
+
+    // ===============================
+    // 🔔 NOTIFICATION TRIGGER
+    // ===============================
+    const students = await User.find({ role: "student" });
+
+    for (const student of students) {
+      await createNotification({
+        recipient: student._id,
+        type: "job",
+        message: `New job posted: ${job.title}`,
+        meta: { jobId: job._id },
+      });
+    }
 
     res.status(201).json({
       success: true,
