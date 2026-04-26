@@ -15,7 +15,12 @@ connectDB();
 const app = express();
 
 //Middleware
-app.use(cors()); // Enables CORS (frontend-bakend connection)
+app.use(
+  cors({
+    origin: "http://localhost:5173", // 👈 frontend URL
+    credentials: true, // 👈 allow cookies/auth
+  }),
+); // Enables CORS (frontend-bakend connection)
 app.use(express.json()); // Parse JSON req body
 
 //test route

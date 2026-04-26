@@ -49,7 +49,7 @@ export const registerUser = async (req, res) => {
       name,
       email,
       passwordHash: hash,
-      role,
+      role: role.toLowerCase(),
     });
 
     //Genarate OTP
@@ -73,6 +73,22 @@ export const registerUser = async (req, res) => {
   } catch (error) {
     console.error("Register Error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+// Get current user
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-passwordHash");
+
+    res.status(200).json({
+      success: true,
+      user: req.user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user",
+    });
   }
 };
 
@@ -351,6 +367,45 @@ export const resetPassword = async (req, res) => {
       success: false,
       message: "Reset password failed",
       error: error.message,
+    });
+  }
+};
+
+// POST /api/auth/verify-reset-otp
+export const verifyResetOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (
+      !user ||
+      !user.resetPasswordToken ||
+      user.resetPasswordExpires < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(otp, user.resetPasswordToken);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect OTP",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "OTP verification failed",
     });
   }
 };

@@ -1,0 +1,21 @@
+@keyframes gradientMove {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 200%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200%;
+  animation: gradientMove 5s linear infinite;
+}
+
+.input {
+  @apply w-full px-3 py-2 rounded bg-white/20 text-white placeholder-gray-300 outline-none;
+}
+
+.btn {
+  @apply w-full bg-green-500 py-2 rounded text-white font-semibold hover:bg-green-600 transition;
+}
