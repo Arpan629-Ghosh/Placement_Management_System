@@ -2,8 +2,115 @@ import cloudinary from "../../config/cloudinary.js";
 import StudentProfile from "../../models/StudentProfile.js";
 import Job from "../../models/Job.js";
 import Application from "../../models/Application.js";
+import RecruiterProfile from "../../models/RecruiterProfile.js";
 import fs from "fs";
 
+export const getStudentDashboard = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Student Profile
+    const profile = await StudentProfile.findOne({
+      user: userId,
+    }).populate("user", "name email");
+
+    // Recent Jobs
+    const jobs = await Job.find({
+      status: "open",
+      visibility: "public",
+      applicationDeadline: { $gt: new Date() },
+    })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+
+    // Recruiter Info
+    const recruiterIds = jobs.map((job) => job.recruiter);
+
+    const recruiterProfiles = await RecruiterProfile.find({
+      user: { $in: recruiterIds },
+    }).lean();
+
+    const recruiterMap = {};
+
+    recruiterProfiles.forEach((profile) => {
+      recruiterMap[profile.user.toString()] = profile;
+    });
+
+    const recentJobs = jobs.map((job) => ({
+      _id: job._id,
+      title: job.title,
+      location: job.location,
+      salaryRange: job.salaryRange,
+      jobType: job.jobType,
+      applicationDeadline: job.applicationDeadline,
+
+      companyName:
+        recruiterMap[job.recruiter.toString()]?.companyName ||
+        "Unknown Company",
+
+      companyLogo:
+        recruiterMap[job.recruiter.toString()]?.companyLogo?.url || null,
+    }));
+
+    // Recent Applications
+    const recentApplications = await Application.find({
+      student: userId,
+    })
+      .populate("job")
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    // Stats
+    const totalApplications = await Application.countDocuments({
+      student: userId,
+    });
+
+    const underReview = await Application.countDocuments({
+      student: userId,
+      status: "under_review",
+    });
+
+    const shortlisted = await Application.countDocuments({
+      student: userId,
+      status: "shortlisted",
+    });
+
+    const interviews = await Application.countDocuments({
+      student: userId,
+      status: "interview_scheduled",
+    });
+
+    res.status(200).json({
+      success: true,
+
+      student: {
+        name: profile?.user?.name || "",
+        email: profile?.user?.email || "",
+        profilePicture: profile?.profilePicture?.url || null,
+        department: profile?.department || "",
+      },
+
+      stats: {
+        totalApplications,
+        underReview,
+        shortlisted,
+        interviews,
+      },
+
+      recentJobs,
+
+      recentApplications,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
 export const createStudentProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -262,21 +369,65 @@ export const uploadProfilePicture = async (req, res) => {
   }
 };
 
+// export const getAvailaibleJobs = async (req, res) => {
+//   try {
+//     const jobs = await Job.find({
+//       status: "open",
+//       visibility: "public",
+//       applicationDeadline: { $gt: new Date() },
+//     }).populate("recruiter", "companyName");
+
+//     res.status(200).json({
+//       success: true,
+//       total: jobs.length,
+//       jobs,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Server Error",
+//     });
+//   }
+// };
+
 export const getAvailaibleJobs = async (req, res) => {
   try {
     const jobs = await Job.find({
       status: "open",
       visibility: "public",
       applicationDeadline: { $gt: new Date() },
-    }).populate("recruiter", "companyName");
+    }).lean();
+
+    const recruiterIds = jobs.map((job) => job.recruiter);
+
+    const recruiterProfiles = await RecruiterProfile.find({
+      user: { $in: recruiterIds },
+    }).lean();
+
+    const profileMap = {};
+
+    recruiterProfiles.forEach((profile) => {
+      profileMap[profile.user.toString()] = profile;
+    });
+
+    const formattedJobs = jobs.map((job) => ({
+      ...job,
+      companyName:
+        profileMap[job.recruiter.toString()]?.companyName || "Unknown Company",
+
+      companyLogo:
+        profileMap[job.recruiter.toString()]?.companyLogo?.url || null,
+    }));
 
     res.status(200).json({
       success: true,
-      total: jobs.length,
-      jobs,
+      total: formattedJobs.length,
+      jobs: formattedJobs,
     });
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       message: "Server Error",

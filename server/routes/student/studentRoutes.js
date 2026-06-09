@@ -12,19 +12,14 @@ import {
   updateStudentProfile,
   uploadResume,
   uploadProfilePicture,
+  getStudentDashboard,
 } from "../../controllers/student/studentController.js";
 import upload from "../../middlewares/upload/multer.js";
 import imageUpload from "../../middlewares/upload/imageUpload.js";
 
 const router = express.Router();
 
-router.get("/dashboard", authMiddleware, isStudent, (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Welcome to Student Dashboard",
-    user: req.user,
-  });
-});
+router.get("/dashboard", authMiddleware, isStudent, getStudentDashboard);
 
 /* ===============================
    Student Profile CRUD
