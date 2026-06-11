@@ -64,6 +64,8 @@ const studentProfileSchema = new mongoose.Schema(
     resume: {
       url: String,
       public_id: String,
+      format: String,
+      version: Number,
     },
 
     skills: [

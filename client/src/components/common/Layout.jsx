@@ -1,5 +1,12 @@
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+
+import Loader from "@/components/ui/Loader";
+
+import { logoutUser } from "@/features/auth/authThunks";
 
 const Layout = ({
   children,
@@ -7,9 +14,22 @@ const Layout = ({
   title = "PMS",
   subtitle = "Placement Management System",
 }) => {
-  const handleLogout = () => {
-    console.log("logout");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { loading } = useSelector((state) => state.auth);
+
+  const handleLogout = async () => {
+    const result = await dispatch(logoutUser());
+
+    if (logoutUser.fulfilled.match(result)) {
+      navigate("/login", { replace: true });
+    }
   };
+
+  if (loading) {
+    return <Loader text="Logging out..." />;
+  }
 
   return (
     <div className="h-screen flex overflow-hidden bg-slate-50">

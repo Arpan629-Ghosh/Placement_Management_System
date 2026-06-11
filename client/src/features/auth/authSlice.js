@@ -113,12 +113,20 @@ const authSlice = createSlice({
       })
 
       // 🔴 LOGOUT
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
 
         localStorage.removeItem("token");
+      })
+
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Logout failed";
       });
   },
 });

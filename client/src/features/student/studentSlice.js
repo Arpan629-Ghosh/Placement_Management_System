@@ -17,6 +17,9 @@ import {
 const initialState = {
   profile: null,
   profileFetched: false,
+  profileLoading: false,
+  dashboardFetched: false,
+  dashboardLoading: false,
   dashboard: {
     recentJobs: [],
     recentApplications: [],
@@ -60,19 +63,29 @@ const studentSlice = createSlice({
 
     builder
       .addCase(getDashboard.pending, (state) => {
+        state.dashboardLoading = true;
         state.loading = true;
       })
 
       .addCase(getDashboard.fulfilled, (state, action) => {
+        state.dashboardLoading = false;
         state.loading = false;
 
-        state.dashboard = action.payload.data;
+        state.dashboard = {
+          student: action.payload.student || null,
+          stats: action.payload.stats || {},
+          recentJobs: action.payload.recentJobs || [],
+          recentApplications: action.payload.recentApplications || [],
+        };
+        state.dashboardFetched = true;
       })
 
       .addCase(getDashboard.rejected, (state, action) => {
+        state.dashboardLoading = false;
         state.loading = false;
 
         state.error = action.payload?.message || "Failed to fetch dashboard";
+        state.dashboardFetched = true;
       });
 
     // =========================================
@@ -105,10 +118,12 @@ const studentSlice = createSlice({
 
     builder
       .addCase(getProfile.pending, (state) => {
+        state.profileLoading = true;
         state.loading = true;
       })
 
       .addCase(getProfile.fulfilled, (state, action) => {
+        state.profileLoading = false;
         state.loading = false;
 
         state.profile = action.payload.data;
@@ -116,6 +131,7 @@ const studentSlice = createSlice({
       })
 
       .addCase(getProfile.rejected, (state, action) => {
+        state.profileLoading = false;
         state.loading = false;
 
         state.error = action.payload?.message || "Failed to fetch profile";
@@ -158,6 +174,7 @@ const studentSlice = createSlice({
         state.loading = false;
 
         state.profile = null;
+        state.profileFetched = false;
 
         state.successMessage = action.payload.message;
       })

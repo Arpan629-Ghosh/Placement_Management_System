@@ -9,19 +9,17 @@ import { getProfile } from "@/features/student/studentThunks";
 const StudentProfileGuard = ({ children }) => {
   const dispatch = useDispatch();
 
-  const { profile, loading, profileFetched } = useSelector(
+  const { profile, profileFetched, profileLoading } = useSelector(
     (state) => state.student,
   );
 
   useEffect(() => {
-    if (!profileFetched) {
+    if (!profileFetched && !profileLoading) {
       dispatch(getProfile());
     }
-  }, [dispatch, profileFetched]);
+  }, [dispatch, profileFetched, profileLoading]);
 
-  console.log("Guard Render");
-
-  if (loading || !profileFetched) {
+  if (!profileFetched) {
     return <Loader text="Checking profile..." />;
   }
 

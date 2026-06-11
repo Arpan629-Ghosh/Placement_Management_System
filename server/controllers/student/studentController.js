@@ -4,6 +4,134 @@ import Job from "../../models/Job.js";
 import Application from "../../models/Application.js";
 import RecruiterProfile from "../../models/RecruiterProfile.js";
 import fs from "fs";
+import sharp from "sharp";
+
+const isAllowedCloudinaryResumeUrl = (value) => {
+  try {
+    const parsedUrl = new URL(value);
+
+    return (
+      parsedUrl.hostname === "res.cloudinary.com" &&
+      parsedUrl.pathname.includes("/raw/upload/") &&
+      parsedUrl.pathname.endsWith(".pdf")
+    );
+  } catch {
+    return false;
+  }
+};
+
+const getResumeCandidateIds = (resumeUrl, resumePublicId) => {
+  const candidates = new Set();
+
+  if (resumePublicId) {
+    candidates.add(resumePublicId);
+    candidates.add(resumePublicId.replace(/\.pdf$/i, ""));
+    candidates.add(`${resumePublicId}.pdf`);
+  }
+
+  try {
+    const parsedUrl = new URL(resumeUrl);
+    const lastPathSegment = parsedUrl.pathname.split("/").filter(Boolean).pop();
+
+    if (lastPathSegment) {
+      candidates.add(lastPathSegment);
+      candidates.add(lastPathSegment.replace(/\.pdf$/i, ""));
+      candidates.add(`${lastPathSegment}.pdf`);
+    }
+  } catch {
+    // Ignore malformed URL inputs; validation happens earlier.
+  }
+
+  return [...candidates].filter(Boolean);
+};
+
+const getResumeVersion = (resumeUrl, resumeVersion) => {
+  if (resumeVersion) {
+    return resumeVersion;
+  }
+
+  try {
+    const parsedUrl = new URL(resumeUrl);
+    const versionMatch = parsedUrl.pathname.match(/\/v(\d+)\//);
+
+    if (versionMatch) {
+      return Number(versionMatch[1]);
+    }
+  } catch {
+    // Ignore malformed URL inputs; validation happens earlier.
+  }
+
+  return undefined;
+};
+
+export const proxyResumePreview = async (req, res) => {
+  try {
+    const resumeUrl = req.query.url;
+    const resumePublicId = req.query.publicId;
+    const resumeVersion = getResumeVersion(req.query.url, req.query.version);
+
+    if (!resumeUrl || !isAllowedCloudinaryResumeUrl(resumeUrl)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid resume URL",
+      });
+    }
+
+    if (!resumePublicId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing resume public ID",
+      });
+    }
+
+    const candidateIds = getResumeCandidateIds(resumeUrl, resumePublicId);
+
+    for (const candidateId of candidateIds) {
+      const candidateUrl = cloudinary.url(candidateId, {
+        resource_type: "raw",
+        type: "upload",
+        format: "pdf",
+        secure: true,
+        sign_url: true,
+        version: resumeVersion,
+      });
+
+      const response = await fetch(candidateUrl);
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+
+      res.setHeader(
+        "Content-Type",
+        response.headers.get("content-type") || "application/pdf",
+      );
+      res.setHeader("Content-Length", buffer.length);
+
+      if (req.query.download === "1") {
+        res.setHeader("Content-Disposition", "attachment; filename=resume.pdf");
+      } else {
+        res.setHeader("Content-Disposition", "inline; filename=resume.pdf");
+      }
+
+      return res.status(200).send(buffer);
+    }
+
+    return res.status(404).json({
+      success: false,
+      message: "Unable to load resume",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
 
 export const getStudentDashboard = async (req, res) => {
   try {
@@ -61,6 +189,33 @@ export const getStudentDashboard = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(5);
 
+    const applicationRecruiterIds = recentApplications
+      .map((application) => application.job?.recruiter)
+      .filter(Boolean);
+
+    const applicationRecruiterProfiles = await RecruiterProfile.find({
+      user: { $in: applicationRecruiterIds },
+    }).lean();
+
+    const applicationRecruiterMap = {};
+
+    applicationRecruiterProfiles.forEach((profile) => {
+      applicationRecruiterMap[profile.user.toString()] = profile;
+    });
+
+    const formattedApplications = recentApplications.map((application) => ({
+      _id: application._id,
+      status: application.status,
+      appliedAt: application.appliedAt,
+      title: application.job?.title || "Untitled Job",
+      companyName:
+        applicationRecruiterMap[application.job?.recruiter?.toString()]
+          ?.companyName || "Unknown Company",
+      companyLogo:
+        applicationRecruiterMap[application.job?.recruiter?.toString()]
+          ?.companyLogo?.url || null,
+    }));
+
     // Stats
     const totalApplications = await Application.countDocuments({
       student: userId,
@@ -100,7 +255,7 @@ export const getStudentDashboard = async (req, res) => {
 
       recentJobs,
 
-      recentApplications,
+      recentApplications: formattedApplications,
     });
   } catch (error) {
     console.error(error);
@@ -175,30 +330,33 @@ export const updateStudentProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const updateProfile = await StudentProfile.findOneAndUpdate(
+    const updatedProfile = await StudentProfile.findOneAndUpdate(
       { user: userId },
-      { $set: req.body },
+      {
+        $set: req.body,
+      },
       {
         new: true,
         runValidators: true,
       },
-    );
+    ).populate("user", "name email role");
 
-    if (!updateProfile) {
+    if (!updatedProfile) {
       return res.status(404).json({
         success: false,
         message: "Profile not found",
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Profile updated successfully",
-      data: updateProfile,
+      data: updatedProfile,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
+    console.error("Update Profile Error:", error);
+
+    return res.status(500).json({
       success: false,
       message: "Server Error",
     });
@@ -274,6 +432,8 @@ export const uploadResume = async (req, res) => {
     studentProfile.resume = {
       url: result.secure_url,
       public_id: result.public_id,
+      format: result.format || "pdf",
+      version: result.version,
     };
 
     await studentProfile.save();
@@ -330,21 +490,31 @@ export const uploadProfilePicture = async (req, res) => {
       );
     }
 
+    const optimizedProfilePicture = await sharp(req.file.buffer)
+      .rotate()
+      .resize({
+        width: 800,
+        height: 800,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ lossless: true, effort: 6 })
+      .toBuffer();
+
     // Upload new profile picture to cloudinary
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
           {
             folder: "pms/profile-pictures",
-            resource_type: "auto",
-            transformation: [{ width: 400, height: 400, crop: "fill" }],
+            resource_type: "image",
           },
           (error, result) => {
             if (error) reject(error);
             else resolve(result);
           },
         )
-        .end(req.file.buffer);
+        .end(optimizedProfilePicture);
     });
 
     // Save new profile picture in database

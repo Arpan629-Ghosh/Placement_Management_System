@@ -12,12 +12,15 @@ import {
   updateStudentProfile,
   uploadResume,
   uploadProfilePicture,
+  proxyResumePreview,
   getStudentDashboard,
 } from "../../controllers/student/studentController.js";
 import upload from "../../middlewares/upload/multer.js";
 import imageUpload from "../../middlewares/upload/imageUpload.js";
 
 const router = express.Router();
+
+router.get("/resume/preview", proxyResumePreview);
 
 router.get("/dashboard", authMiddleware, isStudent, getStudentDashboard);
 

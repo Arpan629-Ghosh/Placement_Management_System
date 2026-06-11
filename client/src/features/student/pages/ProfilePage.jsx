@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
@@ -16,13 +16,18 @@ import {
   FileText,
   Pencil,
 } from "lucide-react";
+import { studentSidebarMenu } from "../constants/SidebarMenu";
+import PdfViewerModal from "@/components/ui/PdfViewerModal";
+import { getResumeProxyUrl } from "@/utils/resumeUrl";
+import { formatDate } from "@/utils/formDate";
 
 const ProfilePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isResumeOpen, setIsResumeOpen] = useState(false);
 
   const { profile, loading } = useSelector((state) => state.student);
-
+  console.log("Profile Data:", profile);
   useEffect(() => {
     if (!profile) {
       dispatch(getProfile());
@@ -31,28 +36,64 @@ const ProfilePage = () => {
 
   if (loading || !profile) {
     return (
-      <Layout>
+      <Layout sidebarMenu={studentSidebarMenu}>
         <Loader text="Loading Profile..." />
       </Layout>
     );
   }
 
   return (
-    <Layout>
+    <Layout sidebarMenu={studentSidebarMenu}>
+      <PdfViewerModal
+        open={isResumeOpen}
+        onClose={() => setIsResumeOpen(false)}
+        url={getResumeProxyUrl(
+          profile?.resume?.url || "",
+          profile?.resume?.public_id || "",
+          profile?.resume?.format || "pdf",
+          profile?.resume?.version || "",
+        )}
+      />
+
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
 
         <div className="bg-white rounded-3xl shadow-sm border p-8">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              <img
-                src={
-                  profile?.profilePicture?.url ||
-                  "https://ui-avatars.com/api/?name=Student"
-                }
-                alt="Profile"
-                className="w-28 h-28 rounded-full object-cover border"
-              />
+              {profile?.profilePicture?.url ? (
+                <img
+                  src={profile.profilePicture.url}
+                  alt={profile?.user?.name}
+                  className="
+        w-28
+        h-28
+        rounded-full
+        object-cover
+        border-2
+        border-slate-200
+      "
+                />
+              ) : (
+                <div
+                  className="
+        w-28
+        h-28
+        rounded-full
+        bg-indigo-600
+        text-white
+        flex
+        items-center
+        justify-center
+        text-4xl
+        font-bold
+        border-2
+        border-indigo-100
+      "
+                >
+                  {(profile?.user?.name || "S").charAt(0).toUpperCase()}
+                </div>
+              )}
 
               <div>
                 <h1 className="text-3xl font-bold">{profile?.user?.name}</h1>
@@ -62,17 +103,21 @@ const ProfilePage = () => {
                 <div className="mt-3">
                   <span
                     className={`
-                      px-3 py-1 rounded-full text-sm font-medium
-                      ${
-                        profile.availabilityStatus === "open"
-                          ? "bg-green-100 text-green-700"
-                          : profile.availabilityStatus === "placed"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-slate-100 text-slate-700"
-                      }
-                    `}
+          px-3
+          py-1
+          rounded-full
+          text-sm
+          font-medium
+          ${
+            profile?.availabilityStatus === "open"
+              ? "bg-green-100 text-green-700"
+              : profile?.availabilityStatus === "placed"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-slate-100 text-slate-700"
+          }
+        `}
                   >
-                    {profile.availabilityStatus}
+                    {profile?.availabilityStatus}
                   </span>
                 </div>
               </div>
@@ -194,8 +239,13 @@ const ProfilePage = () => {
 
                         <h3 className="font-semibold">{exp.role}</h3>
                       </div>
-
                       <p className="text-slate-600 mt-1">{exp.company}</p>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {formatDate(exp.startDate)} -{" "}
+                        {exp.currentlyWorking
+                          ? "Present"
+                          : formatDate(exp.endDate)}
+                      </p>{" "}
                     </div>
                   ))}
                 </div>
@@ -238,10 +288,9 @@ const ProfilePage = () => {
               <h2 className="text-xl font-semibold mb-5">Resume</h2>
 
               {profile?.resume?.url ? (
-                <a
-                  href={profile.resume.url}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => setIsResumeOpen(true)}
                   className="
                     flex items-center justify-center gap-2
                     w-full
@@ -254,7 +303,7 @@ const ProfilePage = () => {
                 >
                   <FileText size={18} />
                   View Resume
-                </a>
+                </button>
               ) : (
                 <div
                   className="
