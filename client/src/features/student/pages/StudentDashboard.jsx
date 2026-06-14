@@ -79,7 +79,14 @@ const StudentDashboard = () => {
 
   if (!dashboardFetched) {
     return (
-      <Layout sidebarMenu={studentSidebarMenu}>
+      <Layout
+        sidebarMenu={studentSidebarMenu}
+        navbarTitle="Student Dashboard"
+        navbarSubtitle="Manage jobs and applications"
+        userName={profile?.user?.name}
+        department={profile?.department}
+        profilePicture={profile?.profilePicture?.url}
+      >
         <Loader text="Loading Dashboard..." />
       </Layout>
     );
@@ -96,7 +103,14 @@ const StudentDashboard = () => {
   };
 
   return (
-    <Layout sidebarMenu={studentSidebarMenu}>
+    <Layout
+      sidebarMenu={studentSidebarMenu}
+      navbarTitle="Student Dashboard"
+      navbarSubtitle="Manage jobs and applications"
+      userName={profile?.user?.name}
+      department={profile?.department}
+      profilePicture={profile?.profilePicture?.url}
+    >
       <div className="space-y-8">
         {/* Header */}
 

@@ -56,7 +56,7 @@ router.put(
   isRecruiterApproved,
   updateJob,
 );
-router.post(
+router.delete(
   "/job/:jobId",
   authMiddleware,
   isRecruiter,

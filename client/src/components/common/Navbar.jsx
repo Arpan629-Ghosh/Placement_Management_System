@@ -1,15 +1,7 @@
 import { Bell } from "lucide-react";
-import { useSelector } from "react-redux";
 
-const Navbar = () => {
-  const { profile, dashboard } = useSelector((state) => state.student);
-
-  const studentProfile = profile || dashboard?.student || null;
-
-  const studentName =
-    studentProfile?.user?.name || dashboard?.student?.name || "Student";
-
-  const avatarLetter = studentName.charAt(0).toUpperCase();
+const Navbar = ({ title, subtitle, userName, department, profilePicture }) => {
+  const avatarLetter = userName?.charAt(0)?.toUpperCase() || "U";
 
   return (
     <header
@@ -27,16 +19,14 @@ const Navbar = () => {
       {/* Left */}
 
       <div>
-        <h2 className="text-xl font-semibold">Student Dashboard</h2>
+        <h2 className="text-xl font-semibold">{title}</h2>
 
-        <p className="text-sm text-slate-500">Manage jobs and applications</p>
+        <p className="text-sm text-slate-500">{subtitle}</p>
       </div>
 
       {/* Right */}
 
       <div className="flex items-center gap-6">
-        {/* Notification */}
-
         <button className="relative">
           <Bell size={22} />
 
@@ -53,12 +43,10 @@ const Navbar = () => {
           />
         </button>
 
-        {/* Profile */}
-
         <div className="flex items-center gap-3">
-          {profile?.profilePicture?.url ? (
+          {profilePicture ? (
             <img
-              src={profile.profilePicture.url}
+              src={profilePicture}
               alt="profile"
               className="
                 h-10
@@ -81,7 +69,6 @@ const Navbar = () => {
                 justify-center
                 font-semibold
                 text-sm
-                shadow-sm
               "
             >
               {avatarLetter}
@@ -89,11 +76,11 @@ const Navbar = () => {
           )}
 
           <div>
-            <p className="font-medium">{studentName}</p>
+            <p className="font-medium">{userName}</p>
 
-            <p className="text-xs text-slate-500">
-              {profile?.department || ""}
-            </p>
+            {department && (
+              <p className="text-xs text-slate-500">{department}</p>
+            )}
           </div>
         </div>
       </div>

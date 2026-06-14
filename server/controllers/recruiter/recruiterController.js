@@ -1,15 +1,20 @@
 import RecruiterProfile from "../../models/RecruiterProfile.js";
 
+/* =========================================
+   CREATE PROFILE
+========================================= */
 export const createRecruiterProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const existingProfile = await RecruiterProfile.findOne({ user: userId });
+    const existingProfile = await RecruiterProfile.findOne({
+      user: userId,
+    });
 
     if (existingProfile) {
       return res.status(400).json({
         success: false,
-        message: "Recruiter profile already exists ",
+        message: "Recruiter profile already exists",
       });
     }
 
@@ -18,6 +23,8 @@ export const createRecruiterProfile = async (req, res) => {
       ...req.body,
     });
 
+    await profile.populate("user", "name email role");
+
     res.status(201).json({
       success: true,
       message: "Recruiter profile created successfully",
@@ -25,6 +32,7 @@ export const createRecruiterProfile = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -32,19 +40,21 @@ export const createRecruiterProfile = async (req, res) => {
   }
 };
 
+/* =========================================
+   GET PROFILE
+========================================= */
 export const getRecruiterProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const profile = await RecruiterProfile.findOne({ user: userId }).populate(
-      "user",
-      "name email role",
-    );
+    const profile = await RecruiterProfile.findOne({
+      user: userId,
+    }).populate("user", "name email role");
 
     if (!profile) {
       return res.status(404).json({
         success: false,
-        message: "Recruiter profile not found!",
+        message: "Recruiter profile not found",
       });
     }
 
@@ -54,6 +64,7 @@ export const getRecruiterProfile = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -61,6 +72,9 @@ export const getRecruiterProfile = async (req, res) => {
   }
 };
 
+/* =========================================
+   UPDATE PROFILE
+========================================= */
 export const updateRecruiterProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -72,7 +86,7 @@ export const updateRecruiterProfile = async (req, res) => {
         new: true,
         runValidators: true,
       },
-    );
+    ).populate("user", "name email role");
 
     if (!updatedProfile) {
       return res.status(404).json({
@@ -88,6 +102,7 @@ export const updateRecruiterProfile = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -95,6 +110,9 @@ export const updateRecruiterProfile = async (req, res) => {
   }
 };
 
+/* =========================================
+   DELETE PROFILE
+========================================= */
 export const deleteRecruiterProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -116,6 +134,7 @@ export const deleteRecruiterProfile = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       message: "Server Error",

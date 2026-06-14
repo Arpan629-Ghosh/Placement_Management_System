@@ -161,7 +161,12 @@ const CreateProfilePage = () => {
   };
 
   return (
-    <Layout sidebarMenu={studentSidebarMenu}>
+    <Layout
+      sidebarMenu={studentSidebarMenu}
+      navbarTitle="Student Dashboard"
+      navbarSubtitle="Manage jobs and applications"
+      userName="Student"
+    >
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-3xl border shadow-sm p-8">
           <h1 className="text-3xl font-bold mb-2">Complete Your Profile</h1>

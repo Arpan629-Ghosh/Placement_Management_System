@@ -3,6 +3,44 @@ import User from "../../models/User.js";
 import Application from "../../models/Application.js";
 import Job from "../../models/Job.js";
 import { generateReportService } from "../../services/reportService.js";
+import RecruiterProfile from "../../models/RecruiterProfile.js";
+
+export const getDashboardStats = async (req, res) => {
+  try {
+    const totalStudents = await User.countDocuments({ role: "student" });
+
+    const totalRecruiters = await User.countDocuments({ role: "recruiter" });
+
+    const pendingRecruiters = await RecruiterProfile.countDocuments({
+      approvalStatus: "pending",
+    });
+
+    const totalJobs = await Job.countDocuments();
+
+    const totalApplications = await Application.countDocuments();
+
+    const totalPlacements = await Application.countDocuments({
+      status: "selected",
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalStudents,
+        totalRecruiters,
+        pendingRecruiters,
+        totalJobs,
+        totalApplications,
+        totalPlacements,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
 
 // Get all users
 export const getAllUsers = async (req, res) => {

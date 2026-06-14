@@ -7,7 +7,7 @@ export const generateReportService = async () => {
   const totalStudents = await User.countDocuments({ role: "student" });
   const totalRecruiters = await User.countDocuments({ role: "recruiter" });
   const totalJobs = await Job.countDocuments();
-  const activeJobs = await Job.countDocuments({ status: "active" });
+  const activeJobs = await Job.countDocuments({ status: "open" });
   const totalApplications = await Application.countDocuments();
   const pendingApplications = await Application.countDocuments({
     status: "applied",

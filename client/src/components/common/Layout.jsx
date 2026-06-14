@@ -13,6 +13,12 @@ const Layout = ({
   sidebarMenu,
   title = "PMS",
   subtitle = "Placement Management System",
+
+  navbarTitle,
+  navbarSubtitle,
+  userName,
+  department,
+  profilePicture,
 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -41,7 +47,13 @@ const Layout = ({
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar />
+        <Navbar
+          title={navbarTitle}
+          subtitle={navbarSubtitle}
+          userName={userName}
+          department={department}
+          profilePicture={profilePicture}
+        />
 
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="max-w-[1600px] mx-auto">{children}</div>

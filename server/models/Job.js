@@ -30,6 +30,11 @@ const jobSchema = new mongoose.Schema(
       trim: true,
     },
 
+    companyName: {
+      type: String,
+      required: true,
+    },
+
     eligibilityCriteria: {
       minCGPA: Number,
       departmentAllowed: [String],
@@ -37,14 +42,16 @@ const jobSchema = new mongoose.Schema(
     },
 
     salaryRange: {
-      type: String,
-      trim: true,
+      min: Number,
+      max: Number,
     },
 
     applicationDeadline: {
       type: Date,
       required: true,
     },
+
+    requiredSkills: [String],
 
     visibility: {
       type: String,

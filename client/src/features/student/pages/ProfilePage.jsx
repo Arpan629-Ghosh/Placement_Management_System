@@ -36,14 +36,28 @@ const ProfilePage = () => {
 
   if (loading || !profile) {
     return (
-      <Layout sidebarMenu={studentSidebarMenu}>
+      <Layout
+        sidebarMenu={studentSidebarMenu}
+        navbarTitle="Student Dashboard"
+        navbarSubtitle="Manage jobs and applications"
+        userName={profile?.user?.name}
+        department={profile?.department}
+        profilePicture={profile?.profilePicture?.url}
+      >
         <Loader text="Loading Profile..." />
       </Layout>
     );
   }
 
   return (
-    <Layout sidebarMenu={studentSidebarMenu}>
+    <Layout
+      sidebarMenu={studentSidebarMenu}
+      navbarTitle="Student Dashboard"
+      navbarSubtitle="Manage jobs and applications"
+      userName={profile?.user?.name}
+      department={profile?.department}
+      profilePicture={profile?.profilePicture?.url}
+    >
       <PdfViewerModal
         open={isResumeOpen}
         onClose={() => setIsResumeOpen(false)}

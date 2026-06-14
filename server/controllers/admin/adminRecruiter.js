@@ -2,12 +2,14 @@ import RecruiterProfile from "../../models/RecruiterProfile.js";
 import User from "../../models/User.js";
 import { sendEmail } from "../../utils/sendEmail.js";
 
-// ✅ GET Pending Recruiters
-export const getPendingRecruiters = async (req, res) => {
+// ✅ GET All Recruiters
+export const getAllRecruiters = async (req, res) => {
   try {
     const pendingRecruiters = await RecruiterProfile.find({
-      approvalStatus: ["pending", "approved", "rejected"],
-    }).populate("user", "name email role");
+      approvalStatus: {
+        $in: ["pending", "approved", "rejected"],
+      },
+    }).populate("user", "name email");
 
     return res.status(200).json({
       success: true,

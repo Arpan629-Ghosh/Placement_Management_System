@@ -1,8 +1,8 @@
 import express from "express";
 import {
-  getPendingRecruiters,
   approveRecruiter,
   rejectRecruiter,
+  getAllRecruiters,
 } from "../../controllers/admin/adminRecruiter.js";
 
 import { authMiddleware } from "../../middlewares/auth/middleware.js";
@@ -11,6 +11,7 @@ import { authorizeRoles } from "../../middlewares/authorize/middleware.js";
 import {
   generateReport,
   getAllUsers,
+  getDashboardStats,
   getGraphAnalytics,
   getReports,
   updateUserStatus,
@@ -26,7 +27,9 @@ router.get("/dashboard", authMiddleware, isAdmin, (req, res) => {
   });
 });
 
-router.get("/recruiters/all", authMiddleware, isAdmin, getPendingRecruiters);
+router.get("/stats", authMiddleware, isAdmin, getDashboardStats);
+
+router.get("/recruiters/all", authMiddleware, isAdmin, getAllRecruiters);
 
 router.patch(
   "/recruiters/:recruiterId/approve",

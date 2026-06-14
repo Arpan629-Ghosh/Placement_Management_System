@@ -22,6 +22,19 @@ import CreateProfilePage from "../features/student/pages/CreateProfilePage";
 import ProfilePage from "../features/student/pages/ProfilePage";
 import EditProfilePage from "../features/student/pages/EditProfilePage";
 
+import RecruiterProfileGuard from "./RecruiterProfileGuard";
+import RecruiterApprovalGuard from "./RecruiterApprovalGuard";
+
+/* Recruiter Profile Pages */
+import CreateRecruiterProfilePage from "../features/recruiter/pages/CreateRecruiterProfilePage";
+import RecruiterProfilePage from "../features/recruiter/pages/RecruiterProfilePage";
+import EditRecruiterProfilePage from "../features/recruiter/pages/EditRecruiterProfilePage";
+import PendingApprovalPage from "../features/recruiter/pages/PendingApprovalPage";
+import RecruiterApprovals from "../features/admin/pages/RecruiterApproval";
+import UserManagementPage from "../features/admin/pages/UserManagement";
+import ReportsPage from "../features/admin/pages/Reports";
+import AnalyticsPage from "../features/admin/pages/Analytics";
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -136,14 +149,64 @@ const AppRoutes = () => {
       />
 
       {/* =========================================
-          RECRUITER ROUTES
-      ========================================= */}
+    RECRUITER PROFILE CREATION
+========================================= */}
+
+      <Route
+        path="/recruiter/profile/create"
+        element={
+          <ProtectedRoute role="recruiter">
+            <CreateRecruiterProfilePage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* =========================================
+    RECRUITER ROUTES
+========================================= */}
 
       <Route
         path="/recruiter/dashboard"
         element={
           <ProtectedRoute role="recruiter">
-            <RecruiterDashboard />
+            <RecruiterProfileGuard>
+              <RecruiterApprovalGuard>
+                <RecruiterDashboard />
+              </RecruiterApprovalGuard>
+            </RecruiterProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/profile"
+        element={
+          <ProtectedRoute role="recruiter">
+            <RecruiterProfileGuard>
+              <RecruiterProfilePage />
+            </RecruiterProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/profile/edit"
+        element={
+          <ProtectedRoute role="recruiter">
+            <RecruiterProfileGuard>
+              <EditRecruiterProfilePage />
+            </RecruiterProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/pending-approval"
+        element={
+          <ProtectedRoute role="recruiter">
+            <RecruiterProfileGuard>
+              <PendingApprovalPage />
+            </RecruiterProfileGuard>
           </ProtectedRoute>
         }
       />
@@ -157,6 +220,42 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute role="admin">
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/recruiters"
+        element={
+          <ProtectedRoute role="admin">
+            <RecruiterApprovals />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute role="admin">
+            <UserManagementPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/reports"
+        element={
+          <ProtectedRoute role="admin">
+            <ReportsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/analytics"
+        element={
+          <ProtectedRoute role="admin">
+            <AnalyticsPage />
           </ProtectedRoute>
         }
       />

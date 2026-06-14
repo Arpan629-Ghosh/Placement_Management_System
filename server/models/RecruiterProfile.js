@@ -18,6 +18,7 @@ const recruiterProfileSchema = new mongoose.Schema(
     companyWebsite: {
       type: String,
       trim: true,
+      match: [/^https?:\/\/.+/, "Invalid website URL"],
     },
 
     designation: {
@@ -28,6 +29,7 @@ const recruiterProfileSchema = new mongoose.Schema(
 
     contactNumber: {
       type: String,
+      required: true,
       match: [/^[0-9]{10}$/, "Invalid phone number"],
     },
 
@@ -44,5 +46,9 @@ const recruiterProfileSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+recruiterProfileSchema.index({
+  approvalStatus: 1,
+});
 
 export default mongoose.model("RecruiterProfile", recruiterProfileSchema);

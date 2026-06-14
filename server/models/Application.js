@@ -24,6 +24,11 @@ const applicationSchema = new mongoose.Schema(
       trim: true,
     },
 
+    recruiterRemarks: {
+      type: String,
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: [
