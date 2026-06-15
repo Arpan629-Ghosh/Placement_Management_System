@@ -96,6 +96,7 @@ export const createJob = createAsyncThunk(
 export const getRecruiterJobs = createAsyncThunk(
   "recruiter/getRecruiterJobs",
   async (_, { rejectWithValue }) => {
+    console.log("API HIT");
     try {
       return await getRecruiterJobsAPI();
     } catch (error) {

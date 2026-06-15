@@ -14,6 +14,8 @@ import {
   uploadProfilePicture,
   proxyResumePreview,
   getStudentDashboard,
+  getJobDetails,
+  getApplicationStatus,
 } from "../../controllers/student/studentController.js";
 import upload from "../../middlewares/upload/multer.js";
 import imageUpload from "../../middlewares/upload/imageUpload.js";
@@ -60,7 +62,15 @@ router.get("/jobs", authMiddleware, isStudent, getAvailaibleJobs);
 
 router.post("/apply/:jobId", authMiddleware, isStudent, applyForJob);
 
+router.get("/jobs/:jobId", authMiddleware, isStudent, getJobDetails);
+
 router.get("/applications", authMiddleware, isStudent, getMyApplication);
+router.get(
+  "/jobs/:jobId/application-status",
+  authMiddleware,
+  isStudent,
+  getApplicationStatus,
+);
 
 router.get(
   "/applications/:applicationId",

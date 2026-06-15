@@ -18,13 +18,22 @@ import {
 const initialState = {
   profile: null,
   profileFetched: false,
+
   dashboard: null,
+
   jobs: [],
   applications: [],
-  loading: false,
+
   error: null,
   successMessage: null,
+
   isApproved: false,
+
+  profileLoading: false,
+  dashboardLoading: false,
+  jobsLoading: false,
+  applicationsLoading: false,
+  interviewLoading: false,
 };
 
 const recruiterSlice = createSlice({
@@ -49,16 +58,16 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(getRecruiterDashboard.pending, (state) => {
-        state.loading = true;
+        state.dashboardLoading = true;
       })
 
       .addCase(getRecruiterDashboard.fulfilled, (state, action) => {
-        state.loading = false;
+        state.dashboardLoading = false;
         state.dashboard = action.payload;
       })
 
       .addCase(getRecruiterDashboard.rejected, (state, action) => {
-        state.loading = false;
+        state.dashboardLoading = false;
         state.error = action.payload?.message || "Failed to load dashboard";
       });
 
@@ -68,12 +77,12 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(createRecruiterProfile.pending, (state) => {
-        state.loading = true;
+        state.profileLoading = true;
         state.error = null;
       })
 
       .addCase(createRecruiterProfile.fulfilled, (state, action) => {
-        state.loading = false;
+        state.profileLoading = false;
 
         state.profile = action.payload.data;
         state.profileFetched = true;
@@ -82,7 +91,7 @@ const recruiterSlice = createSlice({
       })
 
       .addCase(createRecruiterProfile.rejected, (state, action) => {
-        state.loading = false;
+        state.profileLoading = false;
         state.error = action.payload?.message || "Profile creation failed";
       });
 
@@ -92,18 +101,18 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(getRecruiterProfile.pending, (state) => {
-        state.loading = true;
+        state.profileLoading = true;
       })
 
       .addCase(getRecruiterProfile.fulfilled, (state, action) => {
-        state.loading = false;
+        state.profileLoading = false;
         state.profile = action.payload.data;
         state.profileFetched = true;
         state.isApproved = action.payload.data.approvalStatus === "approved";
       })
 
       .addCase(getRecruiterProfile.rejected, (state, action) => {
-        state.loading = false;
+        state.profileLoading = false;
         state.profileFetched = true;
         state.error = action.payload?.message || "Failed to fetch profile";
       });
@@ -114,18 +123,18 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(updateRecruiterProfile.pending, (state) => {
-        state.loading = true;
+        state.profileLoading = true;
       })
 
       .addCase(updateRecruiterProfile.fulfilled, (state, action) => {
-        state.loading = false;
+        state.profileLoading = false;
         state.profile = action.payload.data;
         state.successMessage = action.payload.message;
         state.isApproved = action.payload.data.approvalStatus === "approved";
       })
 
       .addCase(updateRecruiterProfile.rejected, (state, action) => {
-        state.loading = false;
+        state.profileLoading = false;
 
         state.error = action.payload?.message || "Profile update failed";
       });
@@ -136,20 +145,23 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(deleteRecruiterProfile.pending, (state) => {
-        state.loading = true;
+        state.profileLoading = true;
+        // console.log("PROFILE PENDING");
       })
 
       .addCase(deleteRecruiterProfile.fulfilled, (state, action) => {
-        state.loading = false;
+        state.profileLoading = false;
 
         state.profile = null;
         state.profileFetched = false;
 
         state.successMessage = action.payload.message;
+        // console.log("PROFILE FULFILLED");
       })
 
       .addCase(deleteRecruiterProfile.rejected, (state, action) => {
-        state.loading = false;
+        state.profileLoading = false;
+        // console.log("PROFILE REJECTED");
 
         state.error = action.payload?.message || "Delete failed";
       });
@@ -160,11 +172,11 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(createJob.pending, (state) => {
-        state.loading = true;
+        state.jobsLoading = true;
       })
 
       .addCase(createJob.fulfilled, (state, action) => {
-        state.loading = false;
+        state.jobsLoading = false;
 
         state.jobs.unshift(action.payload.data);
 
@@ -172,7 +184,7 @@ const recruiterSlice = createSlice({
       })
 
       .addCase(createJob.rejected, (state, action) => {
-        state.loading = false;
+        state.jobsLoading = false;
 
         state.error = action.payload?.message || "Failed to create job";
       });
@@ -183,17 +195,17 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(getRecruiterJobs.pending, (state) => {
-        state.loading = true;
+        state.jobsLoading = true;
       })
 
       .addCase(getRecruiterJobs.fulfilled, (state, action) => {
-        state.loading = false;
+        state.jobsLoading = false;
 
         state.jobs = action.payload.jobs;
       })
 
       .addCase(getRecruiterJobs.rejected, (state, action) => {
-        state.loading = false;
+        state.jobsLoading = false;
 
         state.error = action.payload?.message || "Failed to fetch jobs";
       });
@@ -204,11 +216,11 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(updateJob.pending, (state) => {
-        state.loading = true;
+        state.jobsLoading = true;
       })
 
       .addCase(updateJob.fulfilled, (state, action) => {
-        state.loading = false;
+        state.jobsLoading = false;
 
         const updatedJob = action.payload.data;
 
@@ -220,7 +232,7 @@ const recruiterSlice = createSlice({
       })
 
       .addCase(updateJob.rejected, (state, action) => {
-        state.loading = false;
+        state.jobsLoading = false;
 
         state.error = action.payload?.message || "Failed to update job";
       });
@@ -231,11 +243,11 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(deleteJob.pending, (state) => {
-        state.loading = true;
+        state.jobsLoading = true;
       })
 
       .addCase(deleteJob.fulfilled, (state, action) => {
-        state.loading = false;
+        state.jobsLoading = false;
 
         state.jobs = state.jobs.filter((job) => job._id !== action.meta.arg);
 
@@ -243,7 +255,7 @@ const recruiterSlice = createSlice({
       })
 
       .addCase(deleteJob.rejected, (state, action) => {
-        state.loading = false;
+        state.jobsLoading = false;
 
         state.error = action.payload?.message || "Failed to delete job";
       });
@@ -254,17 +266,17 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(getApplicationsByJob.pending, (state) => {
-        state.loading = true;
+        state.applicationsLoading = true;
       })
 
       .addCase(getApplicationsByJob.fulfilled, (state, action) => {
-        state.loading = false;
+        state.applicationsLoading = false;
 
         state.applications = action.payload.applications;
       })
 
       .addCase(getApplicationsByJob.rejected, (state, action) => {
-        state.loading = false;
+        state.applicationsLoading = false;
 
         state.error = action.payload?.message || "Failed to fetch applications";
       });
@@ -275,11 +287,11 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(updateApplicationStatus.pending, (state) => {
-        state.loading = true;
+        state.applicationsLoading = true;
       })
 
       .addCase(updateApplicationStatus.fulfilled, (state, action) => {
-        state.loading = false;
+        state.applicationsLoading = false;
 
         const updatedApplication = action.payload.data;
 
@@ -291,7 +303,7 @@ const recruiterSlice = createSlice({
       })
 
       .addCase(updateApplicationStatus.rejected, (state, action) => {
-        state.loading = false;
+        state.applicationsLoading = false;
 
         state.error = action.payload?.message || "Failed to update application";
       });
@@ -302,11 +314,11 @@ const recruiterSlice = createSlice({
 
     builder
       .addCase(scheduleInterview.pending, (state) => {
-        state.loading = true;
+        state.interviewLoading = true;
       })
 
       .addCase(scheduleInterview.fulfilled, (state, action) => {
-        state.loading = false;
+        state.interviewLoading = false;
 
         const updatedApplication = action.payload.data;
 
@@ -318,7 +330,7 @@ const recruiterSlice = createSlice({
       })
 
       .addCase(scheduleInterview.rejected, (state, action) => {
-        state.loading = false;
+        state.interviewLoading = false;
 
         state.error = action.payload?.message || "Failed to schedule interview";
       });

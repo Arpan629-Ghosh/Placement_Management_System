@@ -14,7 +14,12 @@ export const getRecruiterDashboardAPI = async () => {
 // ======================================
 
 export const createRecruiterProfileAPI = async (data) => {
-  const res = await axios.post("/recruiter/profile", data);
+  const res = await axios.post("/recruiter/profile", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
   return res.data;
 };
 
@@ -24,7 +29,12 @@ export const getRecruiterProfileAPI = async () => {
 };
 
 export const updateRecruiterProfileAPI = async (data) => {
-  const res = await axios.put("/recruiter/profile", data);
+  const res = await axios.put("/recruiter/profile", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
   return res.data;
 };
 

@@ -19,7 +19,7 @@ import { getRecruiterProfile } from "../recruiterThunks";
 const RecruiterDashboard = () => {
   const dispatch = useDispatch();
 
-  const { profile, loading } = useSelector((state) => state.recruiter);
+  const { profile, dashboardLoading } = useSelector((state) => state.recruiter);
 
   useEffect(() => {
     if (!profile) {
@@ -27,7 +27,7 @@ const RecruiterDashboard = () => {
     }
   }, [dispatch, profile]);
 
-  if (loading || !profile) {
+  if (dashboardLoading || !profile) {
     return (
       <Layout sidebarMenu={recruiterSidebarMenu}>
         <Loader text="Loading Dashboard..." />

@@ -135,73 +135,175 @@ export const getReports = async (req, res) => {
 // =============================
 export const getGraphAnalytics = async (req, res) => {
   try {
+    // =========================================
+    // APPLICATIONS PER DAY (LAST 7 DAYS)
+    // =========================================
+
     const last7Days = new Date();
-    last7Days.setDate(last7Days.getDate() - 7);
+    last7Days.setDate(last7Days.getDate() - 6);
 
     const applicationsRaw = await Application.aggregate([
-      { $match: { createdAt: { $gte: last7Days } } },
+      {
+        $match: {
+          createdAt: { $gte: last7Days },
+        },
+      },
       {
         $group: {
           _id: {
             date: {
-              $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$createdAt",
+              },
             },
           },
           count: { $sum: 1 },
         },
       },
-      { $sort: { "_id.date": 1 } },
+      {
+        $sort: {
+          "_id.date": 1,
+        },
+      },
     ]);
 
-    const applicationsPerDay = applicationsRaw.map((item) => ({
-      date: item._id.date,
-      count: item.count,
-    }));
+    const applicationMap = {};
+
+    applicationsRaw.forEach((item) => {
+      applicationMap[item._id.date] = item.count;
+    });
+
+    const applicationsPerDay = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+
+      date.setDate(date.getDate() - i);
+
+      const formattedDate = date.toISOString().split("T")[0];
+
+      applicationsPerDay.push({
+        date: formattedDate,
+        count: applicationMap[formattedDate] || 0,
+      });
+    }
+
+    // =========================================
+    // JOBS PER MONTH (LAST 6 MONTHS)
+    // =========================================
 
     const last6Months = new Date();
-    last6Months.setMonth(last6Months.getMonth() - 6);
+    last6Months.setMonth(last6Months.getMonth() - 5);
 
     const jobsRaw = await Job.aggregate([
-      { $match: { createdAt: { $gte: last6Months } } },
+      {
+        $match: {
+          createdAt: { $gte: last6Months },
+        },
+      },
       {
         $group: {
           _id: {
             month: {
-              $dateToString: { format: "%Y-%m", date: "$createdAt" },
+              $dateToString: {
+                format: "%Y-%m",
+                date: "$createdAt",
+              },
             },
           },
-          count: { $sum: 1 },
+          count: {
+            $sum: 1,
+          },
         },
       },
-      { $sort: { "_id.month": 1 } },
+      {
+        $sort: {
+          "_id.month": 1,
+        },
+      },
     ]);
 
-    const jobsPerMonth = jobsRaw.map((item) => ({
-      month: item._id.month,
-      count: item.count,
-    }));
+    const jobsMap = {};
+
+    jobsRaw.forEach((item) => {
+      jobsMap[item._id.month] = item.count;
+    });
+
+    const jobsPerMonth = [];
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+
+      date.setMonth(date.getMonth() - i);
+
+      const month = date.toISOString().slice(0, 7);
+
+      jobsPerMonth.push({
+        month,
+        count: jobsMap[month] || 0,
+      });
+    }
+
+    // =========================================
+    // PLACEMENT TREND (LAST 6 MONTHS)
+    // =========================================
 
     const placementRaw = await Application.aggregate([
-      { $match: { status: "selected" } },
+      {
+        $match: {
+          status: "selected",
+          createdAt: { $gte: last6Months },
+        },
+      },
       {
         $group: {
           _id: {
             month: {
-              $dateToString: { format: "%Y-%m", date: "$createdAt" },
+              $dateToString: {
+                format: "%Y-%m",
+                date: "$createdAt",
+              },
             },
           },
-          count: { $sum: 1 },
+          count: {
+            $sum: 1,
+          },
         },
       },
-      { $sort: { "_id.month": 1 } },
+      {
+        $sort: {
+          "_id.month": 1,
+        },
+      },
     ]);
 
-    const placementTrend = placementRaw.map((item) => ({
-      month: item._id.month,
-      count: item.count,
-    }));
+    const placementMap = {};
 
-    res.json({
+    placementRaw.forEach((item) => {
+      placementMap[item._id.month] = item.count;
+    });
+
+    const placementTrend = [];
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+
+      date.setMonth(date.getMonth() - i);
+
+      const month = date.toISOString().slice(0, 7);
+
+      placementTrend.push({
+        month,
+        count: placementMap[month] || 0,
+      });
+    }
+
+    // =========================================
+    // RESPONSE
+    // =========================================
+
+    return res.status(200).json({
       success: true,
       data: {
         applicationsPerDay,
@@ -210,7 +312,9 @@ export const getGraphAnalytics = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    console.error("Graph Analytics Error:", error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

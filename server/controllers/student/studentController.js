@@ -148,22 +148,10 @@ export const getStudentDashboard = async (req, res) => {
       visibility: "public",
       applicationDeadline: { $gt: new Date() },
     })
+      .populate("recruiter", "companyName companyLogo approvalStatus")
       .sort({ createdAt: -1 })
       .limit(5)
       .lean();
-
-    // Recruiter Info
-    const recruiterIds = jobs.map((job) => job.recruiter);
-
-    const recruiterProfiles = await RecruiterProfile.find({
-      user: { $in: recruiterIds },
-    }).lean();
-
-    const recruiterMap = {};
-
-    recruiterProfiles.forEach((profile) => {
-      recruiterMap[profile.user.toString()] = profile;
-    });
 
     const recentJobs = jobs.map((job) => ({
       _id: job._id,
@@ -173,19 +161,22 @@ export const getStudentDashboard = async (req, res) => {
       jobType: job.jobType,
       applicationDeadline: job.applicationDeadline,
 
-      companyName:
-        recruiterMap[job.recruiter.toString()]?.companyName ||
-        "Unknown Company",
+      companyName: job.recruiter?.companyName || "Unknown Company",
 
-      companyLogo:
-        recruiterMap[job.recruiter.toString()]?.companyLogo?.url || null,
+      companyLogo: job.recruiter?.companyLogo?.url || null,
     }));
 
     // Recent Applications
     const recentApplications = await Application.find({
       student: userId,
     })
-      .populate("job")
+      .populate({
+        path: "job",
+        populate: {
+          path: "recruiter",
+          select: "companyName companyLogo",
+        },
+      })
       .sort({ createdAt: -1 })
       .limit(5);
 
@@ -207,13 +198,12 @@ export const getStudentDashboard = async (req, res) => {
       _id: application._id,
       status: application.status,
       appliedAt: application.appliedAt,
+
       title: application.job?.title || "Untitled Job",
-      companyName:
-        applicationRecruiterMap[application.job?.recruiter?.toString()]
-          ?.companyName || "Unknown Company",
-      companyLogo:
-        applicationRecruiterMap[application.job?.recruiter?.toString()]
-          ?.companyLogo?.url || null,
+
+      companyName: application.job?.recruiter?.companyName || "Unknown Company",
+
+      companyLogo: application.job?.recruiter?.companyLogo?.url || null,
     }));
 
     // Stats
@@ -563,37 +553,130 @@ export const uploadProfilePicture = async (req, res) => {
 
 export const getAvailaibleJobs = async (req, res) => {
   try {
-    const jobs = await Job.find({
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      jobType = "",
+      location = "",
+      sort = "latest",
+    } = req.query;
+
+    const query = {
       status: "open",
       visibility: "public",
-      applicationDeadline: { $gt: new Date() },
-    }).lean();
+      applicationDeadline: {
+        $gt: new Date(),
+      },
+    };
 
-    const recruiterIds = jobs.map((job) => job.recruiter);
+    // Search
+    if (search.trim()) {
+      query.$or = [
+        {
+          title: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+        {
+          description: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+        {
+          requiredSkills: {
+            $elemMatch: {
+              $regex: search,
+              $options: "i",
+            },
+          },
+        },
+      ];
+    }
 
-    const recruiterProfiles = await RecruiterProfile.find({
-      user: { $in: recruiterIds },
-    }).lean();
+    // Job Type Filter
+    if (jobType) {
+      query.jobType = jobType;
+    }
 
-    const profileMap = {};
+    // Location Filter
+    if (location.trim()) {
+      query.location = {
+        $regex: location,
+        $options: "i",
+      };
+    }
 
-    recruiterProfiles.forEach((profile) => {
-      profileMap[profile.user.toString()] = profile;
-    });
+    // Sorting
+    let sortOption = {};
 
-    const formattedJobs = jobs.map((job) => ({
-      ...job,
-      companyName:
-        profileMap[job.recruiter.toString()]?.companyName || "Unknown Company",
+    switch (sort) {
+      case "oldest":
+        sortOption = { createdAt: 1 };
+        break;
 
-      companyLogo:
-        profileMap[job.recruiter.toString()]?.companyLogo?.url || null,
-    }));
+      case "salary_high":
+        sortOption = {
+          "salaryRange.max": -1,
+        };
+        break;
+
+      case "salary_low":
+        sortOption = {
+          "salaryRange.min": 1,
+        };
+        break;
+
+      case "deadline":
+        sortOption = {
+          applicationDeadline: 1,
+        };
+        break;
+
+      default:
+        sortOption = {
+          createdAt: -1,
+        };
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [jobs, total] = await Promise.all([
+      Job.find(query)
+        .populate(
+          "recruiter",
+          `
+            companyName
+            companyLogo
+            companyWebsite
+            designation
+          `,
+        )
+        .sort(sortOption)
+        .skip(skip)
+        .limit(Number(limit))
+        .lean(),
+
+      Job.countDocuments(query),
+    ]);
 
     res.status(200).json({
       success: true,
-      total: formattedJobs.length,
-      jobs: formattedJobs,
+
+      jobs,
+
+      pagination: {
+        currentPage: Number(page),
+        totalPages: Math.ceil(total / limit),
+        totalJobs: total,
+        limit: Number(limit),
+
+        hasNextPage: Number(page) < Math.ceil(total / limit),
+
+        hasPreviousPage: Number(page) > 1,
+      },
     });
   } catch (error) {
     console.error(error);
@@ -619,16 +702,39 @@ export const applyForJob = async (req, res) => {
       });
     }
 
-    if (job.applicationDeadline < new Date()) {
+    if (job.status !== "open") {
       return res.status(400).json({
         success: false,
-        message: "Application Deadline has passed",
+        message: "This job is closed",
       });
     }
 
-    const profile = await StudentProfile.findOne({ user: userId });
+    if (job.visibility !== "public") {
+      return res.status(400).json({
+        success: false,
+        message: "Job is not available",
+      });
+    }
 
-    if (!profile || !profile.resume) {
+    if (job.applicationDeadline < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Application deadline has passed",
+      });
+    }
+
+    const studentProfile = await StudentProfile.findOne({
+      user: userId,
+    });
+
+    if (!studentProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Student profile not found",
+      });
+    }
+
+    if (!studentProfile.resume?.url) {
       return res.status(400).json({
         success: false,
         message: "Please upload resume before applying",
@@ -647,10 +753,22 @@ export const applyForJob = async (req, res) => {
       });
     }
 
+    // Optional Eligibility Check
+    if (
+      job.eligibilityCriteria?.minCGPA &&
+      studentProfile.cgpa &&
+      studentProfile.cgpa < job.eligibilityCriteria.minCGPA
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not eligible for this job",
+      });
+    }
+
     const application = await Application.create({
       job: jobId,
       student: userId,
-      resumeSnapshot: profile.resume,
+      resumeSnapshot: studentProfile.resume,
     });
 
     res.status(201).json({
@@ -660,6 +778,7 @@ export const applyForJob = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -668,27 +787,40 @@ export const applyForJob = async (req, res) => {
 };
 
 export const getMyApplication = async (req, res) => {
-  try {
-    const userId = req.user.id;
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
 
-    const applications = await Application.find({
-      student: userId,
+  const skip = (page - 1) * limit;
+
+  const [applications, total] = await Promise.all([
+    Application.find({
+      student: req.user.id,
     })
-      .populate("job")
-      .sort({ createdAt: -1 });
+      .populate({
+        path: "job",
+        populate: {
+          path: "recruiter",
+          select: "companyName companyLogo",
+        },
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
 
-    res.status(200).json({
-      success: true,
-      total: applications.length,
-      applications,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-    });
-  }
+    Application.countDocuments({
+      student: req.user.id,
+    }),
+  ]);
+
+  res.status(200).json({
+    success: true,
+    applications,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalApplications: total,
+    },
+  });
 };
 
 export const getApplicationDetails = async (req, res) => {
@@ -696,8 +828,26 @@ export const getApplicationDetails = async (req, res) => {
     const { applicationId } = req.params;
 
     const application = await Application.findById(applicationId)
-      .populate("job")
-      .populate("student", "name email");
+      .populate({
+        path: "job",
+        populate: {
+          path: "recruiter",
+          select: `
+            companyName
+            companyLogo
+            companyWebsite
+            designation
+            contactNumber
+          `,
+        },
+      })
+      .populate(
+        "student",
+        `
+          name
+          email
+        `,
+      );
 
     if (!application) {
       return res.status(404).json({
@@ -712,6 +862,64 @@ export const getApplicationDetails = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+export const getJobDetails = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = await Job.findById(jobId).populate(
+      "recruiter",
+      `
+        companyName
+        companyLogo
+        companyWebsite
+        designation
+        contactNumber
+      `,
+    );
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      job,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+export const getApplicationStatus = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const application = await Application.findOne({
+      job: jobId,
+      student: req.user.id,
+    });
+
+    res.status(200).json({
+      success: true,
+      applied: !!application,
+    });
+  } catch (error) {
     res.status(500).json({
       success: false,
       message: "Server Error",

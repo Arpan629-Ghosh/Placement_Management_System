@@ -1,6 +1,7 @@
 import express from "express";
 import { authMiddleware } from "../../middlewares/auth/middleware.js";
 import { isRecruiter } from "../../middlewares/role/middleware.js";
+import imageUpload from "../../middlewares/upload/imageUpload.js";
 import {
   createRecruiterProfile,
   deleteRecruiterProfile,
@@ -31,9 +32,21 @@ router.get("/dashboard", authMiddleware, isRecruiter, (req, res) => {
   });
 });
 
-router.post("/profile", authMiddleware, isRecruiter, createRecruiterProfile);
+router.post(
+  "/profile",
+  authMiddleware,
+  isRecruiter,
+  imageUpload.single("companyLogo"),
+  createRecruiterProfile,
+);
 router.get("/profile", authMiddleware, isRecruiter, getRecruiterProfile);
-router.put("/profile", authMiddleware, isRecruiter, updateRecruiterProfile);
+router.put(
+  "/profile",
+  authMiddleware,
+  isRecruiter,
+  imageUpload.single("companyLogo"),
+  updateRecruiterProfile,
+);
 router.delete("/profile", authMiddleware, isRecruiter, deleteRecruiterProfile);
 router.post(
   "/job",

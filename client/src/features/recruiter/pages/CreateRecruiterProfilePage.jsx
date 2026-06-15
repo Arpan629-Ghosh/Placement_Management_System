@@ -11,13 +11,14 @@ const CreateRecruiterProfilePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { loading } = useSelector((state) => state.recruiter);
+  const { profileLoading } = useSelector((state) => state.recruiter);
 
   const [formData, setFormData] = useState({
     companyName: "",
     companyWebsite: "",
     designation: "",
     contactNumber: "",
+    companyLogo: null,
   });
 
   const handleChange = (e) => {
@@ -27,10 +28,28 @@ const CreateRecruiterProfilePage = () => {
     }));
   };
 
+  const handleFileChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      companyLogo: e.target.files[0],
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await dispatch(createRecruiterProfile(formData));
+    const payload = new FormData();
+
+    payload.append("companyName", formData.companyName);
+    payload.append("companyWebsite", formData.companyWebsite);
+    payload.append("designation", formData.designation);
+    payload.append("contactNumber", formData.contactNumber);
+
+    if (formData.companyLogo) {
+      payload.append("companyLogo", formData.companyLogo);
+    }
+
+    const res = await dispatch(createRecruiterProfile(payload));
 
     if (res.meta.requestStatus === "fulfilled") {
       navigate("/recruiter/pending-approval");
@@ -40,8 +59,8 @@ const CreateRecruiterProfilePage = () => {
   return (
     <Layout
       sidebarMenu={recruiterSidebarMenu}
-      navbarTitle="Recruiter Dashboard"
-      navbarSubtitle="Manage jobs and candidates"
+      navbarTitle="Profile Setup"
+      navbarSubtitle="Complete your recruiter profile to access all features"
       userName="Recruiter"
     >
       <div className="max-w-4xl mx-auto">
@@ -120,12 +139,29 @@ const CreateRecruiterProfilePage = () => {
               />
             </div>
 
+            <div className="md:col-span-2">
+              <label className="block mb-2 font-medium">Company Logo</label>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="
+      w-full
+      border
+      rounded-xl
+      px-4
+      py-3
+    "
+              />
+            </div>
+
             {/* Submit */}
 
             <div className="md:col-span-2">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={profileLoading}
                 className="
                   w-full
                   bg-indigo-600
@@ -136,7 +172,9 @@ const CreateRecruiterProfilePage = () => {
                   font-semibold
                 "
               >
-                {loading ? "Creating Profile..." : "Create Recruiter Profile"}
+                {profileLoading
+                  ? "Creating Profile..."
+                  : "Create Recruiter Profile"}
               </button>
             </div>
           </form>

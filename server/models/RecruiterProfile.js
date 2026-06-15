@@ -40,8 +40,14 @@ const recruiterProfileSchema = new mongoose.Schema(
     },
 
     companyLogo: {
-      url: String,
-      public_id: String,
+      url: {
+        type: String,
+        default: "",
+      },
+      public_id: {
+        type: String,
+        default: "",
+      },
     },
   },
   { timestamps: true },

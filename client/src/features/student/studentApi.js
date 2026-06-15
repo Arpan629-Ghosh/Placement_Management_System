@@ -66,8 +66,31 @@ export const uploadProfilePictureAPI = async (formData) => {
 // JOBS
 // ==============================
 
-export const getJobsAPI = async () => {
-  const res = await axios.get("/student/jobs");
+export const getJobsAPI = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  jobType = "",
+  location = "",
+  sortBy = "latest",
+}) => {
+  const res = await axios.get("/student/jobs", {
+    params: {
+      page,
+      limit,
+      search,
+      jobType,
+      location,
+      sortBy,
+    },
+  });
+
+  return res.data;
+};
+
+export const getJobDetailsAPI = async (jobId) => {
+  const res = await axios.get(`/student/jobs/${jobId}`);
+
   return res.data;
 };
 
@@ -80,8 +103,14 @@ export const applyForJobAPI = async (jobId) => {
 // APPLICATIONS
 // ==============================
 
-export const getApplicationsAPI = async () => {
-  const res = await axios.get("/student/applications");
+export const getApplicationsAPI = async ({ page = 1, limit = 10 }) => {
+  const res = await axios.get("/student/applications", {
+    params: {
+      page,
+      limit,
+    },
+  });
+
   return res.data;
 };
 

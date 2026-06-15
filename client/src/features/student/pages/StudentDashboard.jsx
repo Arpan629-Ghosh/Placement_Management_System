@@ -175,7 +175,11 @@ const StudentDashboard = () => {
                       companyName={job.companyName || "Unknown Company"}
                       title={job.title}
                       location={job.location || "Location not specified"}
-                      salary={job.salaryRange || "Salary not disclosed"}
+                      salary={
+                        job.salaryRange
+                          ? `₹${job.salaryRange.min?.toLocaleString()} - ₹${job.salaryRange.max?.toLocaleString()}`
+                          : "Salary not disclosed"
+                      }
                       jobType={job.jobType?.replaceAll("_", " ") || "N/A"}
                     />
                   ))}

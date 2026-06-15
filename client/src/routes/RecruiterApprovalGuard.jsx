@@ -2,7 +2,10 @@ import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const RecruiterApprovalGuard = ({ children }) => {
-  const { profile } = useSelector((state) => state.recruiter);
+  const { profile, loading } = useSelector((state) => state.recruiter);
+
+  // console.log("ApprovalGuard");
+  if (loading) return null;
 
   if (!profile) {
     return <Navigate to="/recruiter/profile/create" replace />;

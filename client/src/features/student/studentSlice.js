@@ -12,6 +12,7 @@ import {
   getApplications,
   getApplicationDetails,
   getDashboard,
+  getJobDetails,
 } from "./studentThunks";
 
 const initialState = {
@@ -32,6 +33,28 @@ const initialState = {
 
   applicationDetails: null,
 
+  jobsFetched: false,
+  jobsLoading: false,
+
+  jobDetails: null,
+
+  applicationsFetched: false,
+  applicationsLoading: false,
+
+  jobPagination: {
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    totalJobs: 0,
+  },
+
+  applicationPagination: {
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    totalApplications: 0,
+  },
+
   loading: false,
 
   error: null,
@@ -51,6 +74,10 @@ const studentSlice = createSlice({
 
     clearStudentMessage: (state) => {
       state.successMessage = null;
+    },
+
+    clearJobDetails: (state) => {
+      state.jobDetails = null;
     },
   },
 
@@ -243,18 +270,46 @@ const studentSlice = createSlice({
     builder
       .addCase(getJobs.pending, (state) => {
         state.loading = true;
+        state.jobsLoading = true;
+        state.error = null;
       })
 
       .addCase(getJobs.fulfilled, (state, action) => {
         state.loading = false;
+        state.jobsLoading = false;
 
-        state.jobs = action.payload.jobs;
+        state.jobs = action.payload.jobs || [];
+
+        state.jobPagination = {
+          page: action.payload.page,
+          limit: action.payload.limit,
+          totalPages: action.payload.totalPages,
+          totalJobs: action.payload.totalJobs,
+        };
+
+        state.jobsFetched = true;
       })
 
       .addCase(getJobs.rejected, (state, action) => {
         state.loading = false;
+        state.jobsLoading = false;
 
         state.error = action.payload?.message || "Failed to fetch jobs";
+      });
+    builder
+      .addCase(getJobDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(getJobDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.jobDetails = action.payload.job;
+      })
+
+      .addCase(getJobDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to fetch job details";
       });
 
     // =========================================
@@ -325,6 +380,7 @@ const studentSlice = createSlice({
   },
 });
 
-export const { clearStudentError, clearStudentMessage } = studentSlice.actions;
+export const { clearStudentError, clearStudentMessage, clearJobDetails } =
+  studentSlice.actions;
 
 export default studentSlice.reducer;

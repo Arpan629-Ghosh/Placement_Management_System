@@ -1,14 +1,25 @@
 import Job from "../../models/Job.js";
 import User from "../../models/User.js";
+import RecruiterProfile from "../../models/RecruiterProfile.js";
 import { createNotification } from "../../services/notificationService.js";
 
 export const createJob = async (req, res) => {
   try {
-    const recruiterId = req.user.id;
+    const userId = req.user.id;
+
+    const recruiterProfile = await RecruiterProfile.findOne({
+      user: userId,
+    });
+
+    if (!recruiterProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Recruiter profile not found",
+      });
+    }
 
     const { applicationDeadline } = req.body;
 
-    // Deadline validation
     if (new Date(applicationDeadline) < new Date()) {
       return res.status(400).json({
         success: false,
@@ -17,13 +28,16 @@ export const createJob = async (req, res) => {
     }
 
     const job = await Job.create({
-      recruiter: recruiterId,
+      recruiter: recruiterProfile._id,
       ...req.body,
     });
 
-    // ===============================
-    // 🔔 NOTIFICATION TRIGGER
-    // ===============================
+    const populatedJob = await Job.findById(job._id).populate(
+      "recruiter",
+      "companyName companyLogo approvalStatus",
+    );
+
+    // Notify students
     const students = await User.find({ role: "student" });
 
     for (const student of students) {
@@ -31,17 +45,20 @@ export const createJob = async (req, res) => {
         recipient: student._id,
         type: "job",
         message: `New job posted: ${job.title}`,
-        meta: { jobId: job._id },
+        meta: {
+          jobId: job._id,
+        },
       });
     }
 
     res.status(201).json({
       success: true,
       message: "Job created successfully",
-      data: job,
+      data: populatedJob,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Create Job Error:", error);
+
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -51,11 +68,22 @@ export const createJob = async (req, res) => {
 
 export const getRecruiterJobs = async (req, res) => {
   try {
-    const recruiterId = req.user.id;
-
-    const jobs = await Job.find({ recruiter: recruiterId }).sort({
-      createdAt: -1,
+    const recruiterProfile = await RecruiterProfile.findOne({
+      user: req.user.id,
     });
+
+    if (!recruiterProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Recruiter profile not found",
+      });
+    }
+
+    const jobs = await Job.find({
+      recruiter: recruiterProfile._id,
+    })
+      .populate("recruiter", "companyName companyLogo approvalStatus")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -63,14 +91,29 @@ export const getRecruiterJobs = async (req, res) => {
       jobs,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
   }
 };
 
 export const updateJob = async (req, res) => {
   try {
-    const recruiterId = req.user.id;
     const { jobId } = req.params;
+
+    const recruiterProfile = await RecruiterProfile.findOne({
+      user: req.user.id,
+    });
+
+    if (!recruiterProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Recruiter profile not found",
+      });
+    }
 
     const job = await Job.findById(jobId);
 
@@ -81,8 +124,7 @@ export const updateJob = async (req, res) => {
       });
     }
 
-    // Ownership check 🔥
-    if (job.recruiter.toString() !== recruiterId) {
+    if (job.recruiter.toString() !== recruiterProfile._id.toString()) {
       return res.status(403).json({
         success: false,
         message: "Unauthorized",
@@ -91,9 +133,14 @@ export const updateJob = async (req, res) => {
 
     const updatedJob = await Job.findByIdAndUpdate(
       jobId,
-      { $set: req.body },
-      { new: true, runValidators: true },
-    );
+      {
+        $set: req.body,
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).populate("recruiter", "companyName companyLogo approvalStatus");
 
     res.status(200).json({
       success: true,
@@ -101,14 +148,29 @@ export const updateJob = async (req, res) => {
       data: updatedJob,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
   }
 };
 
 export const deleteJob = async (req, res) => {
   try {
-    const recruiterId = req.user.id;
     const { jobId } = req.params;
+
+    const recruiterProfile = await RecruiterProfile.findOne({
+      user: req.user.id,
+    });
+
+    if (!recruiterProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Recruiter profile not found",
+      });
+    }
 
     const job = await Job.findById(jobId);
 
@@ -119,8 +181,7 @@ export const deleteJob = async (req, res) => {
       });
     }
 
-    // Ownership check 🔥
-    if (job.recruiter.toString() !== recruiterId) {
+    if (job.recruiter.toString() !== recruiterProfile._id.toString()) {
       return res.status(403).json({
         success: false,
         message: "Unauthorized",
@@ -134,6 +195,11 @@ export const deleteJob = async (req, res) => {
       message: "Job deleted successfully",
     });
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
   }
 };

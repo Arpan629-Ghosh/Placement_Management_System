@@ -23,7 +23,7 @@ const RecruiterProfilePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { profile, loading } = useSelector((state) => state.recruiter);
+  const { profile, profileLoading } = useSelector((state) => state.recruiter);
 
   useEffect(() => {
     if (!profile) {
@@ -31,7 +31,7 @@ const RecruiterProfilePage = () => {
     }
   }, [dispatch, profile]);
 
-  if (loading || !profile) {
+  if (profileLoading || !profile) {
     return (
       <Layout sidebarMenu={recruiterSidebarMenu}>
         <Loader text="Loading Profile..." />
@@ -71,8 +71,8 @@ const RecruiterProfilePage = () => {
   return (
     <Layout
       sidebarMenu={recruiterSidebarMenu}
-      navbarTitle="Recruiter Dashboard"
-      navbarSubtitle="Manage jobs and candidates"
+      navbarTitle="Profile Management"
+      navbarSubtitle="Manage your recruiter profile and view approval status"
       userName={profile?.user?.name}
       department={profile?.companyName}
       profilePicture={profile?.companyLogo?.url}

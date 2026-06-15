@@ -9,9 +9,16 @@ import { getRecruiterProfile } from "@/features/recruiter/recruiterThunks";
 const RecruiterProfileGuard = ({ children }) => {
   const dispatch = useDispatch();
 
-  const { profile, loading, profileFetched } = useSelector(
+  const { profile, profileLoading, profileFetched } = useSelector(
     (state) => state.recruiter,
   );
+
+  // console.log("ProfileGuard");
+  // console.log({
+  //   profile,
+  //   profileFetched,
+  //   loading,
+  // });
 
   useEffect(() => {
     if (!profileFetched) {
@@ -19,7 +26,7 @@ const RecruiterProfileGuard = ({ children }) => {
     }
   }, [dispatch, profileFetched]);
 
-  if (loading || !profileFetched) {
+  if (profileLoading || !profileFetched) {
     return <Loader text="Checking recruiter profile..." />;
   }
 

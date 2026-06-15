@@ -34,6 +34,8 @@ import RecruiterApprovals from "../features/admin/pages/RecruiterApproval";
 import UserManagementPage from "../features/admin/pages/UserManagement";
 import ReportsPage from "../features/admin/pages/Reports";
 import AnalyticsPage from "../features/admin/pages/Analytics";
+import JobDetailsPage from "../features/student/pages/JobDetailsPage";
+import JobsPage from "../features/student/pages/JobsPage";
 
 const AppRoutes = () => {
   return (
@@ -148,6 +150,28 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/student/jobs"
+        element={
+          <ProtectedRoute role="student">
+            <StudentProfileGuard>
+              <JobsPage />
+            </StudentProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/student/jobs/:jobId"
+        element={
+          <ProtectedRoute role="student">
+            <StudentProfileGuard>
+              <JobDetailsPage />
+            </StudentProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
       {/* =========================================
     RECRUITER PROFILE CREATION
 ========================================= */}
@@ -206,6 +230,19 @@ const AppRoutes = () => {
           <ProtectedRoute role="recruiter">
             <RecruiterProfileGuard>
               <PendingApprovalPage />
+            </RecruiterProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/jobs"
+        element={
+          <ProtectedRoute role="recruiter">
+            <RecruiterProfileGuard>
+              <RecruiterApprovalGuard>
+                <JobsPage />
+              </RecruiterApprovalGuard>
             </RecruiterProfileGuard>
           </ProtectedRoute>
         }

@@ -12,6 +12,7 @@ import {
   getApplicationsAPI,
   getApplicationDetailsAPI,
   getDashboardAPI,
+  getJobDetailsAPI,
 } from "./studentApi";
 
 // ======================================
@@ -125,9 +126,20 @@ export const uploadProfilePicture = createAsyncThunk(
 
 export const getJobs = createAsyncThunk(
   "student/getJobs",
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      return await getJobsAPI();
+      return await getJobsAPI(params);
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
+    }
+  },
+);
+
+export const getJobDetails = createAsyncThunk(
+  "student/getJobDetails",
+  async (jobId, { rejectWithValue }) => {
+    try {
+      return await getJobDetailsAPI(jobId);
     } catch (error) {
       return rejectWithValue(error.response?.data);
     }
@@ -155,9 +167,9 @@ export const applyForJob = createAsyncThunk(
 
 export const getApplications = createAsyncThunk(
   "student/getApplications",
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      return await getApplicationsAPI();
+      return await getApplicationsAPI(params);
     } catch (error) {
       return rejectWithValue(error.response?.data);
     }

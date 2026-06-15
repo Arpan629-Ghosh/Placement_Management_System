@@ -6,9 +6,9 @@ const DashboardStatCard = ({ title, value, icon, subtitle }) => {
         rounded-2xl
         p-6
         border
-        border-slate-200
+        border-slate-300
         shadow-sm
-        hover:shadow-lg
+        hover:shadow-2xl
         hover:-translate-y-1
         transition-all
         duration-300
