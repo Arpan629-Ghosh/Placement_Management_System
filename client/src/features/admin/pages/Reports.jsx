@@ -37,6 +37,8 @@ const ReportsPage = () => {
       subtitle="Placement Management System"
       navbarTitle="Reports Management"
       navbarSubtitle="Generate snapshots of PMS statistics."
+      userName="Admin"
+      department="Placement Cell"
     >
       <div className="space-y-8">
         {/* Header */}

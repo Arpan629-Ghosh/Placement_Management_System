@@ -41,6 +41,8 @@ const AdminDashboard = () => {
       subtitle="Placement Management System"
       navbarTitle="Admin Dashboard"
       navbarSubtitle=" Monitor platform activities and manage users."
+      userName="Admin"
+      department="Placement Cell"
     >
       <div className="space-y-8">
         {/* Stats */}

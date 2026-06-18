@@ -119,3 +119,13 @@ export const getApplicationDetailsAPI = async (applicationId) => {
 
   return res.data;
 };
+
+// ==============================
+// APPLICATION STATUS
+// ==============================
+
+export const getApplicationStatusAPI = async (jobId) => {
+  const res = await axios.get(`/student/jobs/${jobId}/application-status`);
+
+  return res.data;
+};

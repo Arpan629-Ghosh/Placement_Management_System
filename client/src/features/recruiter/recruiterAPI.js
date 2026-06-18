@@ -96,3 +96,19 @@ export const scheduleInterviewAPI = async ({
 
   return res.data;
 };
+
+export const getRecruiterApplicationDetailsAPI = async (applicationId) => {
+  const res = await axios.get(`/recruiter/applications/${applicationId}`);
+
+  return res.data;
+};
+
+export const getAllApplicationsAPI = async () => {
+  const res = await axios.get("/recruiter/applications");
+  return res.data;
+};
+
+export const getAllInterviewsAPI = async () => {
+  const res = await axios.get("/recruiter/interviews");
+  return res.data;
+};

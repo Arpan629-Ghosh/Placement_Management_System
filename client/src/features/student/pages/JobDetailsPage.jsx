@@ -127,6 +127,21 @@ const JobDetailsPage = () => {
           <p className="text-slate-600 leading-7">{jobDetails.description}</p>
         </div>
 
+        {/* Website */}
+
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-3">Company Website</h2>
+
+          <a
+            href={jobDetails.recruiter?.companyWebsite}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-700 leading-7"
+          >
+            {jobDetails.recruiter?.companyWebsite}
+          </a>
+        </div>
+
         {/* Skills */}
 
         <div className="mt-8">

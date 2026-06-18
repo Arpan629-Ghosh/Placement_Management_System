@@ -36,6 +36,12 @@ import ReportsPage from "../features/admin/pages/Reports";
 import AnalyticsPage from "../features/admin/pages/Analytics";
 import JobDetailsPage from "../features/student/pages/JobDetailsPage";
 import JobsPage from "../features/student/pages/JobsPage";
+import ApplicationsPage from "../features/student/pages/ApplicationsPage";
+import ApplicationDetailsPage from "../features/student/pages/ApplicationDetailsPage";
+import RecruiterJobsPage from "../features/recruiter/pages/RecruiterJobsPage";
+import RecruiterApplicationsPage from "../features/recruiter/pages/RecruiterApplicationPage";
+import RecruiterApplicationDetailsPage from "../features/recruiter/pages/RecruiterApplicationDetailsPage";
+import RecruiterInterviewPage from "../features/recruiter/pages/RecruiterInterviewPage";
 
 const AppRoutes = () => {
   return (
@@ -172,6 +178,27 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/student/applications"
+        element={
+          <ProtectedRoute role="student">
+            <StudentProfileGuard>
+              <ApplicationsPage />
+            </StudentProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/student/applications/:applicationId"
+        element={
+          <ProtectedRoute role="student">
+            <StudentProfileGuard>
+              <ApplicationDetailsPage />
+            </StudentProfileGuard>
+          </ProtectedRoute>
+        }
+      />
       {/* =========================================
     RECRUITER PROFILE CREATION
 ========================================= */}
@@ -241,8 +268,41 @@ const AppRoutes = () => {
           <ProtectedRoute role="recruiter">
             <RecruiterProfileGuard>
               <RecruiterApprovalGuard>
-                <JobsPage />
+                <RecruiterJobsPage />
               </RecruiterApprovalGuard>
+            </RecruiterProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/applications"
+        element={
+          <ProtectedRoute role="recruiter">
+            <RecruiterProfileGuard>
+              <RecruiterApplicationsPage />
+            </RecruiterProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/applications/:applicationId"
+        element={
+          <ProtectedRoute role="recruiter">
+            <RecruiterProfileGuard>
+              <RecruiterApplicationDetailsPage />
+            </RecruiterProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/interviews"
+        element={
+          <ProtectedRoute role="recruiter">
+            <RecruiterProfileGuard>
+              <RecruiterInterviewPage />
             </RecruiterProfileGuard>
           </ProtectedRoute>
         }

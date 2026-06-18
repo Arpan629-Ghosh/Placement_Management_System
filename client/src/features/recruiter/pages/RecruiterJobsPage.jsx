@@ -11,7 +11,7 @@ import { recruiterSidebarMenu } from "../constants/sidebarMenu";
 import JobCard from "../components/JobCard";
 import JobFormModal from "../components/JobFormModal";
 
-const JobsPage = () => {
+const RecruiterJobsPage = () => {
   const dispatch = useDispatch();
 
   const { profile, jobs, jobsLoading } = useSelector(
@@ -157,4 +157,4 @@ const JobsPage = () => {
   );
 };
 
-export default JobsPage;
+export default RecruiterJobsPage;

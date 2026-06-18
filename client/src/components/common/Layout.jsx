@@ -7,6 +7,8 @@ import Navbar from "./Navbar";
 import Loader from "@/components/ui/Loader";
 
 import { logoutUser } from "@/features/auth/authThunks";
+import { resetStudentState } from "../../features/student/studentSlice";
+import { resetRecruiterState } from "../../features/recruiter/recruiterSlice";
 
 const Layout = ({
   children,
@@ -29,6 +31,8 @@ const Layout = ({
     const result = await dispatch(logoutUser());
 
     if (logoutUser.fulfilled.match(result)) {
+      dispatch(resetStudentState());
+      dispatch(resetRecruiterState());
       navigate("/login", { replace: true });
     }
   };

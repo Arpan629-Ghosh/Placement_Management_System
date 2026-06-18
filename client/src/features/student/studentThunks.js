@@ -13,6 +13,7 @@ import {
   getApplicationDetailsAPI,
   getDashboardAPI,
   getJobDetailsAPI,
+  getApplicationStatusAPI,
 } from "./studentApi";
 
 // ======================================
@@ -185,6 +186,22 @@ export const getApplicationDetails = createAsyncThunk(
   async (applicationId, { rejectWithValue }) => {
     try {
       return await getApplicationDetailsAPI(applicationId);
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
+    }
+  },
+);
+
+// ======================================
+// GET APPLICATION STATUS
+// ======================================
+
+export const getApplicationStatus = createAsyncThunk(
+  "student/getApplicationStatus",
+
+  async (jobId, { rejectWithValue }) => {
+    try {
+      return await getApplicationStatusAPI(jobId);
     } catch (error) {
       return rejectWithValue(error.response?.data);
     }

@@ -163,8 +163,8 @@ const CreateProfilePage = () => {
   return (
     <Layout
       sidebarMenu={studentSidebarMenu}
-      navbarTitle="Student Dashboard"
-      navbarSubtitle="Manage jobs and applications"
+      navbarTitle="Create Profile"
+      navbarSubtitle="Create profile to access the dashboard"
       userName="Student"
     >
       <div className="max-w-5xl mx-auto">

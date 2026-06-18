@@ -13,6 +13,9 @@ import {
   getApplicationsByJobAPI,
   updateApplicationStatusAPI,
   scheduleInterviewAPI,
+  getRecruiterApplicationDetailsAPI,
+  getAllApplicationsAPI,
+  getAllInterviewsAPI,
 } from "./recruiterApi";
 
 // ======================================
@@ -164,6 +167,38 @@ export const scheduleInterview = createAsyncThunk(
         applicationId,
         interviewData,
       });
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
+    }
+  },
+);
+
+export const getRecruiterApplicationDetails = createAsyncThunk(
+  "recruiter/getRecruiterApplicationDetails",
+  async (applicationId, { rejectWithValue }) => {
+    try {
+      return await getRecruiterApplicationDetailsAPI(applicationId);
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
+    }
+  },
+);
+export const getAllApplications = createAsyncThunk(
+  "recruiter/getAllApplications",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await getAllApplicationsAPI();
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
+    }
+  },
+);
+
+export const getAllInterviews = createAsyncThunk(
+  "recruiter/getAllInterviews",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await getAllInterviewsAPI();
     } catch (error) {
       return rejectWithValue(error.response?.data);
     }

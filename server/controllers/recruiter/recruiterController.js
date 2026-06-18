@@ -1,6 +1,106 @@
 import RecruiterProfile from "../../models/RecruiterProfile.js";
 import cloudinary from "../../config/cloudinary.js";
 
+import Job from "../../models/Job.js";
+import Application from "../../models/Application.js";
+
+export const getRecruiterDashboard = async (req, res) => {
+  try {
+    const recruiterProfile = await RecruiterProfile.findOne({
+      user: req.user.id,
+    });
+
+    const recruiterJobs = await Job.find({
+      recruiter: recruiterProfile._id,
+    }).select("_id title createdAt");
+
+    const jobIds = recruiterJobs.map((job) => job._id);
+
+    const [
+      totalJobs,
+      totalApplications,
+      underReview,
+      shortlisted,
+      interviewsScheduled,
+      selected,
+      rejected,
+      recentApplications,
+    ] = await Promise.all([
+      Job.countDocuments({ recruiter: recruiterProfile._id }),
+
+      Application.countDocuments({
+        job: { $in: jobIds },
+      }),
+
+      Application.countDocuments({
+        job: { $in: jobIds },
+        status: "under_review",
+      }),
+
+      Application.countDocuments({
+        job: { $in: jobIds },
+        status: "shortlisted",
+      }),
+
+      Application.countDocuments({
+        job: { $in: jobIds },
+        status: "interview_scheduled",
+      }),
+
+      Application.countDocuments({
+        job: { $in: jobIds },
+        status: "selected",
+      }),
+
+      Application.countDocuments({
+        job: { $in: jobIds },
+        status: "rejected",
+      }),
+
+      Application.find({
+        job: { $in: jobIds },
+      })
+        .populate("student", "name email")
+        .populate("job", "title")
+        .sort({ createdAt: -1 })
+        .limit(5),
+    ]);
+    const recentJobs = await Job.find({
+      recruiter: recruiterProfile._id,
+    })
+      .sort({ createdAt: -1 })
+      .limit(5).select(`
+    title
+    status
+    createdAt
+  `);
+
+    res.status(200).json({
+      success: true,
+
+      stats: {
+        totalJobs,
+        totalApplications,
+        underReview,
+        shortlisted,
+        interviewsScheduled,
+        selected,
+        rejected,
+      },
+
+      recentApplications,
+      recentJobs,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
 /* =========================================
    CREATE PROFILE
 ========================================= */

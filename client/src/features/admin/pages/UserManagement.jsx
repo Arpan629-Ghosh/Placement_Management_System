@@ -84,6 +84,8 @@ const UserManagementPage = () => {
       subtitle="Placement Management System"
       navbarTitle="User Management"
       navbarSubtitle="Manage student and recruiter existence."
+      userName="Admin"
+      department="Placement Cell"
     >
       <div className="space-y-6">
         <div className="bg-white p-4 rounded-2xl border flex gap-4 flex-wrap">

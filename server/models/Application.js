@@ -54,7 +54,32 @@ const applicationSchema = new mongoose.Schema(
       },
       location: String,
       meetingLink: String,
+      feedback: {
+        type: String,
+        trim: true,
+      },
     },
+
+    statusHistory: [
+      {
+        status: {
+          type: String,
+          enum: [
+            "applied",
+            "under_review",
+            "shortlisted",
+            "interview_scheduled",
+            "selected",
+            "rejected",
+          ],
+        },
+
+        updatedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
 
     appliedAt: {
       type: Date,

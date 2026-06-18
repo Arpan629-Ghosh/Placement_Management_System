@@ -52,8 +52,8 @@ const ProfilePage = () => {
   return (
     <Layout
       sidebarMenu={studentSidebarMenu}
-      navbarTitle="Student Dashboard"
-      navbarSubtitle="Manage jobs and applications"
+      navbarTitle="Profile Management"
+      navbarSubtitle="View and edit your profile information"
       userName={profile?.user?.name}
       department={profile?.department}
       profilePicture={profile?.profilePicture?.url}

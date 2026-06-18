@@ -5,6 +5,7 @@ import imageUpload from "../../middlewares/upload/imageUpload.js";
 import {
   createRecruiterProfile,
   deleteRecruiterProfile,
+  getRecruiterDashboard,
   getRecruiterProfile,
   updateRecruiterProfile,
 } from "../../controllers/recruiter/recruiterController.js";
@@ -16,6 +17,9 @@ import {
   updateJob,
 } from "../../controllers/recruiter/jobController.js";
 import {
+  getAllApplications,
+  getAllInterviews,
+  getApplicationDetailsForRecruiter,
   getApplicationsByJob,
   scheduleInterview,
   updateApplicationStatus,
@@ -24,13 +28,13 @@ import {
 const router = express.Router();
 
 // Recruiter Dashboard
-router.get("/dashboard", authMiddleware, isRecruiter, (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Welcome to Recruiter Dashboard",
-    user: req.user,
-  });
-});
+router.get(
+  "/dashboard",
+  authMiddleware,
+  isRecruiter,
+  isRecruiterApproved,
+  getRecruiterDashboard,
+);
 
 router.post(
   "/profile",
@@ -99,5 +103,29 @@ router.post(
   isRecruiter,
   isRecruiterApproved,
   scheduleInterview,
+);
+
+router.get(
+  "/applications/:applicationId",
+  authMiddleware,
+  isRecruiter,
+  isRecruiterApproved,
+  getApplicationDetailsForRecruiter,
+);
+
+router.get(
+  "/applications",
+  authMiddleware,
+  isRecruiter,
+  isRecruiterApproved,
+  getAllApplications,
+);
+
+router.get(
+  "/interviews",
+  authMiddleware,
+  isRecruiter,
+  isRecruiterApproved,
+  getAllInterviews,
 );
 export default router;

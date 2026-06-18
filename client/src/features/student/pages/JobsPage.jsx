@@ -21,35 +21,35 @@ const JobsPage = () => {
   );
 
   const [search, setSearch] = useState("");
-
   const [jobType, setJobType] = useState("");
-
-  const [sortBy, setSortBy] = useState("latest");
-
+  const [location, setLocation] = useState("");
+  const [sort, setSort] = useState("latest");
   const [selectedJob, setSelectedJob] = useState(null);
-
   const [applyModalOpen, setApplyModalOpen] = useState(false);
 
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+
   useEffect(() => {
-    dispatch(
-      getJobs({
-        page: 1,
-        limit: 10,
-        search,
-        jobType,
-        sortBy,
-      }),
-    );
-  }, [dispatch]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    fetchJobs(1);
+  }, [debouncedSearch, jobType, location, sort]);
 
   const fetchJobs = (page = 1) => {
     dispatch(
       getJobs({
         page,
         limit: 10,
-        search,
+        search: debouncedSearch,
         jobType,
-        sortBy,
+        location,
+        sort,
       }),
     );
   };
@@ -68,50 +68,79 @@ const JobsPage = () => {
 
         {/* Filters */}
 
-        <div className="grid md:grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-5 gap-4">
           <SearchBar
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search jobs..."
+            placeholder="Search jobs, skills..."
           />
 
           <select
             value={jobType}
             onChange={(e) => setJobType(e.target.value)}
-            className="border rounded-xl px-4"
+            className="
+      border
+      rounded-xl
+      px-4
+      py-2
+      bg-white
+    "
           >
             <option value="">All Types</option>
-
             <option value="full_time">Full Time</option>
-
             <option value="internship">Internship</option>
-
             <option value="part_time">Part Time</option>
           </select>
 
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Location"
+            className="
+      border
+      rounded-xl
+      px-4
+      py-2
+    "
+          />
+
           <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="border rounded-xl px-4"
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="
+      border
+      rounded-xl
+      px-4
+      py-2
+      bg-white
+    "
           >
             <option value="latest">Latest</option>
-
-            <option value="deadline">Deadline</option>
-
-            <option value="salary">Highest Salary</option>
+            <option value="oldest">Oldest</option>
+            <option value="deadline">Nearest Deadline</option>
+            <option value="salary_high">Highest Salary</option>
+            <option value="salary_low">Lowest Salary</option>
           </select>
 
           <button
-            onClick={() => fetchJobs(1)}
+            onClick={() => {
+              setSearch("");
+              setJobType("");
+              setLocation("");
+              setSort("latest");
+            }}
             className="
-              bg-indigo-600
-              text-white
-              rounded-xl
-              px-4
-              py-2
-            "
+      rounded-xl
+      border
+      bg-white
+      hover:bg-slate-50
+      px-4
+      py-2
+      font-medium
+    "
           >
-            Apply Filters
+            Reset Filters
           </button>
         </div>
 
@@ -137,7 +166,7 @@ const JobsPage = () => {
         {/* Pagination */}
 
         <Pagination
-          currentPage={jobPagination.page}
+          currentPage={jobPagination.currentPage}
           totalPages={jobPagination.totalPages}
           onPageChange={fetchJobs}
         />

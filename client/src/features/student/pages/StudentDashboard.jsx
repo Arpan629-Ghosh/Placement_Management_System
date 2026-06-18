@@ -166,6 +166,7 @@ const StudentDashboard = () => {
                   {filteredJobs.slice(0, 5).map((job) => (
                     <JobCard
                       key={job._id}
+                      jobId={job._id}
                       companyLogo={
                         job.companyLogo ||
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(

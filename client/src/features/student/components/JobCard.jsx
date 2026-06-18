@@ -1,12 +1,19 @@
+import { useNavigate } from "react-router-dom";
+
 const JobCard = ({
   companyLogo,
+  jobId,
   companyName,
   title,
   location,
   salary,
   jobType,
-  onApply,
 }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/student/jobs/${jobId}`);
+  };
   return (
     <div
       className="
@@ -40,7 +47,7 @@ const JobCard = ({
       </div>
 
       <button
-        onClick={onApply}
+        onClick={handleCardClick}
         className="
           mt-4
           w-full
@@ -51,7 +58,7 @@ const JobCard = ({
           hover:bg-blue-700
         "
       >
-        Apply Now
+        See Details
       </button>
     </div>
   );

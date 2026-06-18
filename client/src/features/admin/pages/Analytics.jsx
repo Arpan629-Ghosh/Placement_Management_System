@@ -34,6 +34,8 @@ const AnalyticsPage = () => {
       subtitle="Placement Management System"
       navbarTitle="Analytics"
       navbarSubtitle="View Analytics and Trends of Placement Activities"
+      userName="Admin"
+      department="Placement Cell"
     >
       <div className="space-y-8">
         <Charts

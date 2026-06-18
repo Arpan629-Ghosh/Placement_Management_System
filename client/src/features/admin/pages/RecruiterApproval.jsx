@@ -109,6 +109,8 @@ const RecruiterApprovals = () => {
       subtitle="Placement Management System"
       navbarTitle="Recruiter Approvals"
       navbarSubtitle="  Approve or reject recruiter registrations."
+      userName="Admin"
+      department="Placement Cell"
     >
       <div className="space-y-6">
         {loading ? (

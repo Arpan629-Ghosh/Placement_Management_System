@@ -13,6 +13,7 @@ import {
   getApplicationDetails,
   getDashboard,
   getJobDetails,
+  getApplicationStatus,
 } from "./studentThunks";
 
 const initialState = {
@@ -33,6 +34,10 @@ const initialState = {
 
   applicationDetails: null,
 
+  applicationStatus: {
+    applied: false,
+  },
+
   jobsFetched: false,
   jobsLoading: false,
 
@@ -40,6 +45,8 @@ const initialState = {
 
   applicationsFetched: false,
   applicationsLoading: false,
+
+  applicationStatusLoading: false,
 
   jobPagination: {
     page: 1,
@@ -79,6 +86,8 @@ const studentSlice = createSlice({
     clearJobDetails: (state) => {
       state.jobDetails = null;
     },
+
+    resetStudentState: () => initialState,
   },
 
   extraReducers: (builder) => {
@@ -341,17 +350,26 @@ const studentSlice = createSlice({
 
     builder
       .addCase(getApplications.pending, (state) => {
-        state.loading = true;
+        state.applicationsLoading = true;
       })
 
       .addCase(getApplications.fulfilled, (state, action) => {
-        state.loading = false;
+        state.applicationsLoading = false;
 
         state.applications = action.payload.applications;
+
+        state.applicationPagination = {
+          page: action.payload.pagination.currentPage,
+          totalPages: action.payload.pagination.totalPages,
+          totalApplications: action.payload.pagination.totalApplications,
+          limit: 10,
+        };
+
+        state.applicationsFetched = true;
       })
 
       .addCase(getApplications.rejected, (state, action) => {
-        state.loading = false;
+        state.applicationStatusLoading = false;
 
         state.error = action.payload?.message || "Failed to fetch applications";
       });
@@ -362,25 +380,53 @@ const studentSlice = createSlice({
 
     builder
       .addCase(getApplicationDetails.pending, (state) => {
-        state.loading = true;
+        state.applicationsLoading = true;
       })
 
       .addCase(getApplicationDetails.fulfilled, (state, action) => {
-        state.loading = false;
+        state.applicationsLoading = false;
 
         state.applicationDetails = action.payload.application;
       })
 
       .addCase(getApplicationDetails.rejected, (state, action) => {
-        state.loading = false;
+        state.applicationsLoading = false;
 
         state.error =
           action.payload?.message || "Failed to fetch application details";
       });
+
+    // =========================================
+    // GET APPLICATION STATUS
+    // =========================================
+
+    builder
+      .addCase(getApplicationStatus.pending, (state) => {
+        state.applicationStatusLoading = true;
+      })
+
+      .addCase(getApplicationStatus.fulfilled, (state, action) => {
+        state.applicationStatusLoading = false;
+
+        state.applicationStatus = {
+          applied: action.payload.applied,
+        };
+      })
+
+      .addCase(getApplicationStatus.rejected, (state, action) => {
+        state.applicationStatusLoading = false;
+
+        state.error =
+          action.payload?.message || "Failed to fetch application status";
+      });
   },
 });
 
-export const { clearStudentError, clearStudentMessage, clearJobDetails } =
-  studentSlice.actions;
+export const {
+  clearStudentError,
+  clearStudentMessage,
+  clearJobDetails,
+  resetStudentState,
+} = studentSlice.actions;
 
 export default studentSlice.reducer;
