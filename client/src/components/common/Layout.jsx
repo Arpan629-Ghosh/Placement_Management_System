@@ -9,6 +9,7 @@ import Loader from "@/components/ui/Loader";
 import { logoutUser } from "@/features/auth/authThunks";
 import { resetStudentState } from "../../features/student/studentSlice";
 import { resetRecruiterState } from "../../features/recruiter/recruiterSlice";
+import { clearNotifications } from "../../features/notifications/notificationSlice";
 
 const Layout = ({
   children,
@@ -33,6 +34,7 @@ const Layout = ({
     if (logoutUser.fulfilled.match(result)) {
       dispatch(resetStudentState());
       dispatch(resetRecruiterState());
+      dispatch(clearNotifications());
       navigate("/login", { replace: true });
     }
   };

@@ -10,7 +10,7 @@ const notificationSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["job", "application", "interview"],
+      enum: ["job", "application", "interview", "system"],
       required: true,
     },
 
@@ -32,6 +32,9 @@ const notificationSchema = new mongoose.Schema(
       applicationId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Application",
+      },
+      status: {
+        type: String,
       },
     },
   },

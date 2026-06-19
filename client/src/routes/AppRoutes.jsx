@@ -42,6 +42,7 @@ import RecruiterJobsPage from "../features/recruiter/pages/RecruiterJobsPage";
 import RecruiterApplicationsPage from "../features/recruiter/pages/RecruiterApplicationPage";
 import RecruiterApplicationDetailsPage from "../features/recruiter/pages/RecruiterApplicationDetailsPage";
 import RecruiterInterviewPage from "../features/recruiter/pages/RecruiterInterviewPage";
+import NotificationPage from "../features/student/pages/NotificationPage";
 
 const AppRoutes = () => {
   return (
@@ -49,9 +50,7 @@ const AppRoutes = () => {
       {/* =========================================
           PUBLIC ROUTES
       ========================================= */}
-
       <Route path="/" element={<Landing />} />
-
       <Route
         path="/login"
         element={
@@ -60,7 +59,6 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-
       <Route
         path="/register"
         element={
@@ -69,7 +67,6 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-
       <Route
         path="/verify-email"
         element={
@@ -78,7 +75,6 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-
       <Route
         path="/forgot-password"
         element={
@@ -87,7 +83,6 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-
       <Route
         path="/verify-reset-otp"
         element={
@@ -96,7 +91,6 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-
       <Route
         path="/reset-password"
         element={
@@ -105,11 +99,9 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-
       {/* =========================================
           STUDENT PROFILE CREATION
       ========================================= */}
-
       <Route
         path="/student/profile/create"
         element={
@@ -118,11 +110,9 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       {/* =========================================
           STUDENT ROUTES
       ========================================= */}
-
       <Route
         path="/student/dashboard"
         element={
@@ -133,7 +123,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/student/profile"
         element={
@@ -144,7 +133,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/student/profile/edit"
         element={
@@ -155,7 +143,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/student/jobs"
         element={
@@ -166,7 +153,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/student/jobs/:jobId"
         element={
@@ -177,7 +163,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/student/applications"
         element={
@@ -188,7 +173,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/student/applications/:applicationId"
         element={
@@ -202,7 +186,6 @@ const AppRoutes = () => {
       {/* =========================================
     RECRUITER PROFILE CREATION
 ========================================= */}
-
       <Route
         path="/recruiter/profile/create"
         element={
@@ -211,11 +194,9 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       {/* =========================================
     RECRUITER ROUTES
 ========================================= */}
-
       <Route
         path="/recruiter/dashboard"
         element={
@@ -228,7 +209,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/recruiter/profile"
         element={
@@ -239,7 +219,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/recruiter/profile/edit"
         element={
@@ -250,7 +229,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/recruiter/pending-approval"
         element={
@@ -261,7 +239,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/recruiter/jobs"
         element={
@@ -274,7 +251,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/recruiter/applications"
         element={
@@ -285,7 +261,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/recruiter/applications/:applicationId"
         element={
@@ -296,7 +271,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/recruiter/interviews"
         element={
@@ -307,11 +281,9 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       {/* =========================================
           ADMIN ROUTES
       ========================================= */}
-
       <Route
         path="/admin/dashboard"
         element={
@@ -320,7 +292,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/admin/recruiters"
         element={
@@ -329,7 +300,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/admin/users"
         element={
@@ -338,7 +308,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/admin/reports"
         element={
@@ -347,7 +316,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/admin/analytics"
         element={
@@ -356,11 +324,11 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
+      // Notification
+      <Route path="/notifications" element={<NotificationPage />} />
       {/* =========================================
           404
       ========================================= */}
-
       <Route path="*" element={<h1>404 Not Found</h1>} />
     </Routes>
   );

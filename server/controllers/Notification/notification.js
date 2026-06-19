@@ -9,15 +9,24 @@ export const getMyNotifications = async (req, res) => {
       recipient: req.user.id,
     })
       .sort({ createdAt: -1 })
-      .limit(20);
+      .limit(50);
+
+    const unreadCount = await Notification.countDocuments({
+      recipient: req.user.id,
+      isRead: false,
+    });
 
     res.json({
       success: true,
       count: notifications.length,
+      unreadCount,
       notifications,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -28,15 +37,45 @@ export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await Notification.findByIdAndUpdate(id, {
-      isRead: true,
-    });
+    const notification = await Notification.findByIdAndUpdate(
+      id,
+      {
+        isRead: true,
+      },
+      {
+        new: true,
+      },
+    );
 
     res.json({
       success: true,
-      message: "Notification marked as read",
+      notification,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const markAllAsRead = async (req, res) => {
+  try {
+    await Notification.updateMany(
+      {
+        recipient: req.user.id,
+        isRead: false,
+      },
+      {
+        isRead: true,
+      },
+    );
+
+    res.json({
+      success: true,
+      message: "All notifications marked as read",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

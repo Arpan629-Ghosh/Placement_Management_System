@@ -156,8 +156,13 @@ export const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    const application =
-      await Application.findById(applicationId).populate("job");
+    const application = await Application.findById(applicationId).populate({
+  path: "job",
+  populate: {
+    path: "recruiter",
+    select: "companyName",
+  },
+});
 
     if (!application) {
       return res.status(404).json({
@@ -167,14 +172,14 @@ export const updateApplicationStatus = async (req, res) => {
     }
 
     if (
-      application.job.recruiter.toString() !== recruiterProfile._id.toString()
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized",
-      });
-    }
-
+  application.job.recruiter._id.toString() !==
+  recruiterProfile._id.toString()
+) {
+  return res.status(403).json({
+    success: false,
+    message: "Unauthorized",
+  });
+}
     if (status === "selected") {
       if (!application.interview?.scheduled || !application.interview?.date) {
         return res.status(400).json({
@@ -241,14 +246,48 @@ export const updateApplicationStatus = async (req, res) => {
       },
     };
 
+
+const companyName =
+  updatedApplication.job?.recruiter?.companyName || "Company";
+
+const jobTitle = updatedApplication.job?.title || "Position";
+
+let notificationMessage = "";
+
+switch (status) {
+  case "under_review":
+    notificationMessage = `Your application for ${jobTitle} at ${companyName} is under review.`;
+    break;
+
+  case "shortlisted":
+    notificationMessage = `You have been shortlisted for ${jobTitle} at ${companyName}.`;
+    break;
+
+  case "interview_scheduled":
+    notificationMessage = `${companyName} scheduled an interview for ${jobTitle}.`;
+    break;
+
+  case "selected":
+    notificationMessage = `Congratulations! ${companyName} has selected you for ${jobTitle}.`;
+    break;
+
+  case "rejected":
+    notificationMessage = `Your application for ${jobTitle} at ${companyName} was not selected.`;
+    break;
+
+  default:
+    notificationMessage = `Your application status for ${jobTitle} at ${companyName} changed to ${status.replaceAll("_", " ")}.`;
+}
+
     await createNotification({
-      recipient: application.student,
-      type: "application",
-      message: `Your application status changed to ${status}`,
-      meta: {
-        applicationId: application._id,
-      },
-    });
+  recipient: application.student,
+  type: "application",
+  message: notificationMessage,
+  meta: {
+    applicationId: application._id,
+    status,
+  },
+});
 
     return res.status(200).json({
       success: true,
@@ -365,14 +404,29 @@ export const scheduleInterview = async (req, res) => {
       ...(studentProfile ? studentProfile.toObject() : {}),
     };
 
-    await createNotification({
-      recipient: application.student,
-      type: "interview",
-      message: `Interview scheduled on ${date}`,
-      meta: {
-        applicationId: application._id,
-      },
-    });
+    const companyName =
+  updatedApplication.job?.recruiter?.companyName || "Company";
+
+const jobTitle = updatedApplication.job?.title || "Position";
+
+const formattedDate = new Date(date).toLocaleString("en-IN", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+
+await createNotification({
+  recipient: application.student,
+  type: "interview",
+  message: `${companyName} scheduled your interview for ${jobTitle} on ${formattedDate}`,
+  meta: {
+    applicationId: application._id,
+    status: "interview_scheduled",
+    companyName,
+    jobTitle,
+    interviewDate: date,
+    interviewMode: mode,
+  },
+});
 
     res.status(200).json({
       success: true,
