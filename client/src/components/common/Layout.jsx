@@ -10,6 +10,7 @@ import { logoutUser } from "@/features/auth/authThunks";
 import { resetStudentState } from "../../features/student/studentSlice";
 import { resetRecruiterState } from "../../features/recruiter/recruiterSlice";
 import { clearNotifications } from "../../features/notifications/notificationSlice";
+import { toast } from "react-toastify";
 
 const Layout = ({
   children,
@@ -32,10 +33,15 @@ const Layout = ({
     const result = await dispatch(logoutUser());
 
     if (logoutUser.fulfilled.match(result)) {
+      toast.success(result.payload.message || "Logged out successfully");
       dispatch(resetStudentState());
       dispatch(resetRecruiterState());
       dispatch(clearNotifications());
       navigate("/login", { replace: true });
+    } else {
+      toast.error(
+        result.payload?.message || "Logout failed. Please try again.",
+      );
     }
   };
 

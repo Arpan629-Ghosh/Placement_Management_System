@@ -17,6 +17,7 @@ import { studentSidebarMenu } from "../constants/SidebarMenu";
 import PdfViewerModal from "@/components/ui/PdfViewerModal";
 import { optimizePdfFile } from "@/utils/optimizePdfFile";
 import { getResumeProxyUrl } from "@/utils/resumeUrl";
+import { toast } from "react-toastify";
 
 const EditProfilePage = () => {
   const dispatch = useDispatch();
@@ -224,7 +225,10 @@ const EditProfilePage = () => {
     const res = await dispatch(updateProfile(payload));
 
     if (res.meta.requestStatus === "fulfilled") {
+      toast.success(res.payload.message || "Profile updated successfully");
       navigate("/student/profile");
+    } else {
+      toast.error(res.payload?.message || "Failed to update profile");
     }
   };
 
@@ -237,7 +241,13 @@ const EditProfilePage = () => {
 
     formDataObj.append("resume", optimizedResume);
 
-    await dispatch(uploadResume(formDataObj));
+    const res = await dispatch(uploadResume(formDataObj));
+
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success(res.payload.message || "Resume uploaded successfully");
+    } else {
+      toast.error(res.payload?.message || "Failed to upload resume");
+    }
   };
 
   const handleProfilePictureUpload = async () => {
@@ -247,7 +257,14 @@ const EditProfilePage = () => {
 
     formDataObj.append("profilePicture", profileImage);
 
-    await dispatch(uploadProfilePicture(formDataObj));
+    const res = await dispatch(uploadProfilePicture(formDataObj));
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success(
+        res.payload.message || "Profile picture uploaded successfully",
+      );
+    } else {
+      toast.error(res.payload?.message || "Failed to upload profile picture");
+    }
   };
 
   if (!profile) {

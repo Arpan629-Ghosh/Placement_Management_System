@@ -95,7 +95,7 @@ const VerifyEmail = () => {
     setLoading(false);
 
     if (res.meta.requestStatus === "fulfilled") {
-      toast.success("Email verified successfully");
+      toast.success(res.payload.message || "Email verified successfully");
 
       navigate("/login", {
         state: { email },

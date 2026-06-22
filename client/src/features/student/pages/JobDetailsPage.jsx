@@ -11,13 +11,14 @@ import ApplyJobModal from "../components/ApplyJobModal";
 import { studentSidebarMenu } from "../constants/SidebarMenu";
 
 import { getJobDetails, applyForJob } from "../studentThunks";
+import { toast } from "react-toastify";
 
 const JobDetailsPage = () => {
   const { jobId } = useParams();
 
   const dispatch = useDispatch();
 
-  const { jobDetails, loading, profile } = useSelector(
+  const { jobDetails, loading, jobDetailsLoading, profile } = useSelector(
     (state) => state.student,
   );
 
@@ -27,7 +28,7 @@ const JobDetailsPage = () => {
     dispatch(getJobDetails(jobId));
   }, [dispatch, jobId]);
 
-  if (loading || !jobDetails) {
+  if (jobDetailsLoading || !jobDetails) {
     return (
       <Layout sidebarMenu={studentSidebarMenu}>
         <Loader text="Loading Job..." />
@@ -190,7 +191,18 @@ const JobDetailsPage = () => {
         hasResume={!!profile?.resume}
         loading={loading}
         onClose={() => setApplyModalOpen(false)}
-        onConfirm={() => dispatch(applyForJob(jobDetails._id))}
+        onConfirm={async () => {
+          const res = await dispatch(applyForJob(jobDetails._id));
+
+          if (res.meta.requestStatus === "fulfilled") {
+            toast.success(res.payload.message);
+
+            setApplyModalOpen(false);
+          } else {
+            toast.error(res.payload?.message || "Failed to apply");
+            setApplyModalOpen(false);
+          }
+        }}
       />
     </Layout>
   );

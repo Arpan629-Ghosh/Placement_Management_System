@@ -33,7 +33,7 @@ const ResetPassword = () => {
     );
 
     if (res.meta.requestStatus === "fulfilled") {
-      toast.success("Password reset successful");
+      toast.success(res.payload.message || "Password reset successful");
       navigate("/login");
     } else {
       toast.error(res.payload?.message || "Failed to reset password");

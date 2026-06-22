@@ -42,6 +42,7 @@ const initialState = {
   jobsLoading: false,
 
   jobDetails: null,
+  jobDetailsLoading: false,
 
   applicationsFetched: false,
   applicationsLoading: false,
@@ -307,17 +308,17 @@ const studentSlice = createSlice({
       });
     builder
       .addCase(getJobDetails.pending, (state) => {
-        state.loading = true;
+        state.jobDetailsLoading = true;
         state.error = null;
       })
 
       .addCase(getJobDetails.fulfilled, (state, action) => {
-        state.loading = false;
+        state.jobDetailsLoading = false;
         state.jobDetails = action.payload.job;
       })
 
       .addCase(getJobDetails.rejected, (state, action) => {
-        state.loading = false;
+        state.jobDetailsLoading = false;
         state.error = action.payload?.message || "Failed to fetch job details";
       });
 

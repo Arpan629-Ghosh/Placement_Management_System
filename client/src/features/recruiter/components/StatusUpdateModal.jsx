@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { updateApplicationStatus } from "../recruiterThunks";
+import { toast } from "react-toastify";
 
 const StatusUpdateModal = ({ open, onClose, application }) => {
   const dispatch = useDispatch();
@@ -15,13 +16,24 @@ const StatusUpdateModal = ({ open, onClose, application }) => {
   if (!open) return null;
 
   const handleSubmit = async () => {
-    await dispatch(
+    const res = await dispatch(
       updateApplicationStatus({
         applicationId: application._id,
         status,
         remarks,
       }),
     );
+
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success(
+        res.payload.message || "Application status updated successfully!",
+      );
+    } else {
+      toast.error(
+        res.payload?.message ||
+          "Failed to update application status. Please try again later.",
+      );
+    }
 
     onClose();
   };

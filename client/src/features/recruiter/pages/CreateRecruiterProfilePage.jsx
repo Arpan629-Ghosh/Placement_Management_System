@@ -6,6 +6,7 @@ import Layout from "@/components/common/Layout";
 
 import { recruiterSidebarMenu } from "../constants/sidebarMenu";
 import { createRecruiterProfile } from "../recruiterThunks";
+import { toast } from "react-toastify";
 
 const CreateRecruiterProfilePage = () => {
   const dispatch = useDispatch();
@@ -52,7 +53,16 @@ const CreateRecruiterProfilePage = () => {
     const res = await dispatch(createRecruiterProfile(payload));
 
     if (res.meta.requestStatus === "fulfilled") {
+      toast.success(
+        res.payload.message ||
+          "Recruiter profile created successfully! Awaiting admin approval.",
+      );
       navigate("/recruiter/pending-approval");
+    } else {
+      toast.error(
+        res.payload?.message ||
+          "Failed to create profile. Please try again later.",
+      );
     }
   };
 

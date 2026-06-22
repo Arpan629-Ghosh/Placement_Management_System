@@ -10,6 +10,7 @@ import {
   getRecruiterProfile,
   updateRecruiterProfile,
 } from "../recruiterThunks";
+import { toast } from "react-toastify";
 
 const EditRecruiterProfilePage = () => {
   const dispatch = useDispatch();
@@ -73,7 +74,15 @@ const EditRecruiterProfilePage = () => {
     const res = await dispatch(updateRecruiterProfile(payload));
 
     if (res.meta.requestStatus === "fulfilled") {
+      toast.success(
+        res.payload.message || "Recruiter profile updated successfully!",
+      );
       navigate("/recruiter/profile");
+    } else {
+      toast.error(
+        res.payload?.message ||
+          "Failed to update profile. Please try again later.",
+      );
     }
   };
 

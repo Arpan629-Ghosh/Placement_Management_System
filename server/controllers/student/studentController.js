@@ -529,28 +529,6 @@ export const uploadProfilePicture = async (req, res) => {
   }
 };
 
-// export const getAvailaibleJobs = async (req, res) => {
-//   try {
-//     const jobs = await Job.find({
-//       status: "open",
-//       visibility: "public",
-//       applicationDeadline: { $gt: new Date() },
-//     }).populate("recruiter", "companyName");
-
-//     res.status(200).json({
-//       success: true,
-//       total: jobs.length,
-//       jobs,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Server Error",
-//     });
-//   }
-// };
-
 export const getAvailaibleJobs = async (req, res) => {
   try {
     const {

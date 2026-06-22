@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "@/features/auth/authThunks";
 import { useLocation, useNavigate } from "react-router-dom";
 import AuthForm from "../components/AuthForm";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { loading } = useSelector((state) => state.auth);
 
   // 🔐 Sources
   const tempUser = JSON.parse(localStorage.getItem("tempUser") || "null");
@@ -36,6 +39,7 @@ const Login = () => {
     const res = await dispatch(loginUser(formData));
 
     if (res.meta.requestStatus === "fulfilled") {
+      toast.success(res.payload.message || "Login successful");
       // ✅ Remember Me Logic
       if (rememberMe) {
         localStorage.setItem("rememberedEmail", formData.email);
@@ -47,6 +51,8 @@ const Login = () => {
       localStorage.removeItem("tempUser");
 
       navigate("/");
+    } else {
+      toast.error(res.payload?.message || "Login failed. Please try again.");
     }
   };
 
@@ -95,7 +101,7 @@ const Login = () => {
       formData={formData}
       setFormData={setFormData}
       onSubmit={handleSubmit}
-      buttonText="Login"
+      buttonText={`${loading ? "Logging in..." : "Login"}`}
       footer={
         <p className="text-gray-300">
           {" "}

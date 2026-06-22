@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { scheduleInterview } from "../recruiterThunks";
+import { toast } from "react-toastify";
 
 const ScheduleInterviewModal = ({ open, onClose, application }) => {
   const dispatch = useDispatch();
@@ -23,12 +24,21 @@ const ScheduleInterviewModal = ({ open, onClose, application }) => {
   };
 
   const handleSubmit = async () => {
-    await dispatch(
+    const res = await dispatch(
       scheduleInterview({
         applicationId: application._id,
         interviewData: formData,
       }),
     );
+
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success(res.payload.message || "Interview scheduled successfully!");
+    } else {
+      toast.error(
+        res.payload?.message ||
+          "Failed to schedule interview. Please try again later.",
+      );
+    }
 
     onClose();
   };

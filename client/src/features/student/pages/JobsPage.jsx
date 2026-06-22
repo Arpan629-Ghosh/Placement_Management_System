@@ -12,6 +12,7 @@ import Pagination from "@/components/ui/Pagination";
 import { studentSidebarMenu } from "../constants/SidebarMenu";
 
 import { getJobs, applyForJob } from "../studentThunks";
+import { toast } from "react-toastify";
 
 const JobsPage = () => {
   const dispatch = useDispatch();
@@ -186,7 +187,10 @@ const JobsPage = () => {
             const res = await dispatch(applyForJob(selectedJob._id));
 
             if (res.meta.requestStatus === "fulfilled") {
+              toast.success(res.payload.message || "Applied successfully");
               setApplyModalOpen(false);
+            } else {
+              toast.error(res.payload?.message || "Failed to apply for job");
             }
           }}
         />

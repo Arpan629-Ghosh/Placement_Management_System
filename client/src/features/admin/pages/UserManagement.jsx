@@ -9,6 +9,7 @@ import { adminSidebarMenu } from "../constants/adminSidebarMenu";
 import { getUsers, updateUserStatus } from "../adminThunks";
 
 import UserTable from "../components/UserTable";
+import { toast } from "react-toastify";
 
 const UserManagementPage = () => {
   const dispatch = useDispatch();
@@ -18,6 +19,7 @@ const UserManagementPage = () => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
     dispatch(getUsers());
@@ -37,13 +39,26 @@ const UserManagementPage = () => {
     });
   }, [users, search, roleFilter, statusFilter]);
 
-  const handleStatusChange = (userId, status) => {
-    dispatch(
+  const handleStatusChange = async (userId, status) => {
+    setActionLoading(userId);
+
+    const res = await dispatch(
       updateUserStatus({
         userId,
         status,
       }),
     );
+
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success(res.payload.message || "User status updated successfully!");
+    } else {
+      toast.error(
+        res.payload?.message ||
+          "Failed to update user status. Please try again later.",
+      );
+    }
+
+    setActionLoading(null);
   };
 
   const columns = [
@@ -133,9 +148,26 @@ const UserManagementPage = () => {
                     row.status === "active" ? "blocked" : "active",
                   )
                 }
-                className="px-3 py-2 rounded-lg bg-indigo-100 text-indigo-700"
+                disabled={actionLoading === row._id}
+                className={`
+      px-3
+      py-2
+      rounded-lg
+      disabled:opacity-50
+      ${
+        row.status === "active"
+          ? "bg-red-100 text-red-700"
+          : "bg-green-100 text-green-700"
+      }
+    `}
               >
-                {row.status === "active" ? "Block" : "Activate"}
+                {actionLoading === row._id
+                  ? row.status === "active"
+                    ? "Blocking..."
+                    : "Activating..."
+                  : row.status === "active"
+                    ? "Block"
+                    : "Activate"}
               </button>
             )}
           />

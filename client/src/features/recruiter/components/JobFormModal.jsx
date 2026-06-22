@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { createJob, updateJob } from "../recruiterThunks";
 import { X } from "lucide-react";
+import { toast } from "react-toastify";
 
 const initialState = {
   title: "",
@@ -121,8 +122,17 @@ const JobFormModal = ({ isOpen, onClose, editJob = null }) => {
     }
 
     if (result.meta.requestStatus === "fulfilled") {
+      toast.success(
+        result.payload.message ||
+          (editJob ? "Job updated successfully!" : "Job created successfully!"),
+      );
       onClose();
       setFormData(initialState);
+    } else {
+      toast.error(
+        result.payload?.message ||
+          "Failed to save job. Please try again later.",
+      );
     }
   };
 

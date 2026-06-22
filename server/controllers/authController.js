@@ -18,7 +18,7 @@ const sendOTPEmail = async (EmailOTP, otp) => {
   });
 
   await transporter.sendMail({
-    from: process.env.SENDER_EMAIL,
+    from: `"PMS System" <${process.env.SENDER_EMAIL}>`,
     to: EmailOTP,
     subject: "Verify your Email - PMS",
     html: `

@@ -6,6 +6,7 @@ import Layout from "@/components/common/Layout";
 
 import { createProfile } from "../studentThunks";
 import { studentSidebarMenu } from "../constants/SidebarMenu";
+import { toast } from "react-toastify";
 
 const CreateProfilePage = () => {
   const dispatch = useDispatch();
@@ -156,7 +157,10 @@ const CreateProfilePage = () => {
     const res = await dispatch(createProfile(payload));
 
     if (res.meta.requestStatus === "fulfilled") {
+      toast.success(res.payload.message || "Profile created successfully");
       navigate("/student/dashboard");
+    } else {
+      toast.error(res.payload?.message || "Failed to create profile");
     }
   };
 

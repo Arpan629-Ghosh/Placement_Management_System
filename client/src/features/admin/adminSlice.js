@@ -15,6 +15,7 @@ import {
 
 const initialState = {
   loading: false,
+  recruiterApprovalLoading: false,
   error: null,
 
   dashboard: null,
@@ -77,12 +78,30 @@ const adminSlice = createSlice({
         state.error = action.payload?.message;
       })
 
+      .addCase(approveRecruiter.pending, (state) => {
+        state.recruiterApprovalLoading = true;
+      })
+
       .addCase(approveRecruiter.fulfilled, (state) => {
+        state.recruiterApprovalLoading = false;
         // refresh by re-fetching recruiters
+      })
+      .addCase(approveRecruiter.rejected, (state, action) => {
+        state.recruiterApprovalLoading = false;
+        state.error = action.payload?.message;
+      })
+
+      .addCase(rejectRecruiter.pending, (state) => {
+        state.recruiterApprovalLoading = true;
       })
 
       .addCase(rejectRecruiter.fulfilled, (state) => {
+        state.recruiterApprovalLoading = false;
         // refresh by re-fetching recruiters
+      })
+      .addCase(rejectRecruiter.rejected, (state, action) => {
+        state.recruiterApprovalLoading = false;
+        state.error = action.payload?.message;
       })
 
       // ======================================

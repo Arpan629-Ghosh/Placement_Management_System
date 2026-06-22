@@ -10,6 +10,7 @@ import { recruiterSidebarMenu } from "../constants/sidebarMenu";
 
 import JobCard from "../components/JobCard";
 import JobFormModal from "../components/JobFormModal";
+import { toast } from "react-toastify";
 
 const RecruiterJobsPage = () => {
   const dispatch = useDispatch();
@@ -44,7 +45,14 @@ const RecruiterJobsPage = () => {
 
     if (!confirmDelete) return;
 
-    await dispatch(deleteJob(jobId));
+    const res = await dispatch(deleteJob(jobId));
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success(res.payload.message || "Job deleted successfully!");
+    } else {
+      toast.error(
+        res.payload?.message || "Failed to delete job. Please try again later.",
+      );
+    }
   };
 
   return (

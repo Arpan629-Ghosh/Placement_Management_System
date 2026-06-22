@@ -19,7 +19,7 @@ const ForgotPassword = () => {
     const res = await dispatch(forgotPassword(formData.email));
 
     if (res.meta.requestStatus === "fulfilled") {
-      toast.success("OTP sent to your email");
+      toast.success(res.payload.message || "OTP sent to your email");
 
       navigate("/verify-reset-otp", {
         state: { email: formData.email },
