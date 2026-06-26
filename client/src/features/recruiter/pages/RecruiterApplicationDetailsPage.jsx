@@ -13,7 +13,7 @@ import RecruiterActionPanel from "../components/RecruiterActionPanel";
 import StatusUpdateModal from "../components/StatusUpdateModal";
 import ScheduleInterviewModal from "../components/ScheduleInterviewModal";
 
-import { recruiterSidebarMenu } from "../constants/SidebarMenu";
+import { recruiterSidebarMenu } from "../constants/sidebarMenu";
 
 import { getRecruiterApplicationDetails } from "../recruiterThunks";
 

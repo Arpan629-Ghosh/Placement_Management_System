@@ -9,7 +9,7 @@ import InterviewStats from "../components/InterviewStats";
 import InterviewFilters from "../components/InterviewFilters";
 import InterviewCard from "../components/InterviewCard";
 
-import { recruiterSidebarMenu } from "../constants/SidebarMenu";
+import { recruiterSidebarMenu } from "../constants/sidebarMenu";
 
 import { getAllInterviews } from "../recruiterThunks";
 
