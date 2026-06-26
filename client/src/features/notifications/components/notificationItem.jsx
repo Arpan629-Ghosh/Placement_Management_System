@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-
-import NotificationIcon from "./NotificaionIcon";
+import NotificationIcon from "./NotificationIcon";
 
 dayjs.extend(relativeTime);
 
