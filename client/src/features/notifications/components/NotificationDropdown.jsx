@@ -1,4 +1,4 @@
-import NotificationItem from "./NotificationItem";
+import NotificationItem from "./temp";
 import EmptyNotifications from "./EmptyNotifications";
 
 const NotificationDropdown = ({
