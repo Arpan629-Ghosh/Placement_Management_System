@@ -10,7 +10,7 @@ import ApplicationStats from "../components/ApplicationStats";
 import ApplicationFilters from "../components/ApplicationFilters";
 import CandidateApplicationCard from "../components/CandidateApplicationCard";
 
-import { recruiterSidebarMenu } from "../constants/SidebarMenu";
+import { recruiterSidebarMenu } from "../constants/sidebarMenu";
 
 import { getAllApplications } from "../recruiterThunks";
 
