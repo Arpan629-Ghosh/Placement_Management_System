@@ -16,12 +16,21 @@ connectDB();
 const app = express();
 
 //Middleware
+const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL];
+
 app.use(
   cors({
-    origin: "http://localhost:5173", // 👈 frontend URL
-    credentials: true, // 👈 allow cookies/auth
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   }),
-); // Enables CORS (frontend-bakend connection)
+);
+
 app.use(express.json()); // Parse JSON req body
 
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
