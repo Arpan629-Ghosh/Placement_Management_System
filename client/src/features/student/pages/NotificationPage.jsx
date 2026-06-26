@@ -13,7 +13,7 @@ import {
 import EmptyNotifications from "../../notifications/components/EmptyNotifications";
 
 import { studentSidebarMenu } from "@/features/student/constants/SidebarMenu";
-import NotificationItem from "../../notifications/components/temp";
+import NotificationItem from "../../notifications/components/NotificationItem";
 
 const NotificationPage = () => {
   const dispatch = useDispatch();
