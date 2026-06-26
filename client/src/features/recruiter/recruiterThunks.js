@@ -16,7 +16,7 @@ import {
   getRecruiterApplicationDetailsAPI,
   getAllApplicationsAPI,
   getAllInterviewsAPI,
-} from "./recruiterApi";
+} from "./recruiterAPI";
 
 // ======================================
 // DASHBOARD

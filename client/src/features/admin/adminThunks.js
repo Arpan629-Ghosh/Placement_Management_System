@@ -11,7 +11,7 @@ import {
   updateUserStatusAPI,
   generateReportAPI,
   getReportsAPI,
-} from "./adminApi";
+} from "./adminAPI";
 
 // ======================================
 // DASHBOARD
