@@ -8,6 +8,7 @@ import adminRoutes from "./routes/admin/adminRoutes.js";
 import studentRoutes from "./routes/student/studentRoutes.js";
 import recruiterRoutes from "./routes/recruiter/recruiterRoutes.js";
 import notificationRoutes from "./routes/notification/notificationRoutes.js";
+import path from "path";
 
 // Connect Database
 connectDB();
@@ -22,6 +23,8 @@ app.use(
   }),
 ); // Enables CORS (frontend-bakend connection)
 app.use(express.json()); // Parse JSON req body
+
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 //test route
 app.get("/", (req, res) => {

@@ -61,11 +61,16 @@ const studentProfileSchema = new mongoose.Schema(
 
     yearOfPassing: Number,
 
+    // resume: {
+    //   url: String,
+    //   public_id: String,
+    //   format: String,
+    //   version: Number,
+    // },
+
     resume: {
       url: String,
-      public_id: String,
-      format: String,
-      version: Number,
+      filename: String,
     },
 
     skills: [

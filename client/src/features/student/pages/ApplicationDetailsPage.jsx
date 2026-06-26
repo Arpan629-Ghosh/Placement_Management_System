@@ -39,6 +39,8 @@ const ApplicationDetailsPage = () => {
     resumeSnapshot,
   } = applicationDetails || {};
 
+  // console.log("snapshot", resumeSnapshot);
+
   return (
     <Layout
       sidebarMenu={studentSidebarMenu}

@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { studentSidebarMenu } from "../constants/SidebarMenu";
 import PdfViewerModal from "@/components/ui/PdfViewerModal";
-import { getResumeProxyUrl } from "@/utils/resumeUrl";
+// import { getResumeProxyUrl } from "@/utils/resumeUrl";
 import { formatDate } from "@/utils/formDate";
 
 const ProfilePage = () => {
@@ -61,12 +61,13 @@ const ProfilePage = () => {
       <PdfViewerModal
         open={isResumeOpen}
         onClose={() => setIsResumeOpen(false)}
-        url={getResumeProxyUrl(
-          profile?.resume?.url || "",
-          profile?.resume?.public_id || "",
-          profile?.resume?.format || "pdf",
-          profile?.resume?.version || "",
-        )}
+        // url={getResumeProxyUrl(
+        //   profile?.resume?.url || "",
+        //   profile?.resume?.public_id || "",
+        //   profile?.resume?.format || "pdf",
+        //   profile?.resume?.version || "",
+        // )}
+        url={profile?.resume?.url || ""}
       />
 
       <div className="max-w-7xl mx-auto space-y-6">

@@ -5,133 +5,8 @@ import Application from "../../models/Application.js";
 import RecruiterProfile from "../../models/RecruiterProfile.js";
 import fs from "fs";
 import sharp from "sharp";
-
-const isAllowedCloudinaryResumeUrl = (value) => {
-  try {
-    const parsedUrl = new URL(value);
-
-    return (
-      parsedUrl.hostname === "res.cloudinary.com" &&
-      parsedUrl.pathname.includes("/raw/upload/") &&
-      parsedUrl.pathname.endsWith(".pdf")
-    );
-  } catch {
-    return false;
-  }
-};
-
-const getResumeCandidateIds = (resumeUrl, resumePublicId) => {
-  const candidates = new Set();
-
-  if (resumePublicId) {
-    candidates.add(resumePublicId);
-    candidates.add(resumePublicId.replace(/\.pdf$/i, ""));
-    candidates.add(`${resumePublicId}.pdf`);
-  }
-
-  try {
-    const parsedUrl = new URL(resumeUrl);
-    const lastPathSegment = parsedUrl.pathname.split("/").filter(Boolean).pop();
-
-    if (lastPathSegment) {
-      candidates.add(lastPathSegment);
-      candidates.add(lastPathSegment.replace(/\.pdf$/i, ""));
-      candidates.add(`${lastPathSegment}.pdf`);
-    }
-  } catch {
-    // Ignore malformed URL inputs; validation happens earlier.
-  }
-
-  return [...candidates].filter(Boolean);
-};
-
-const getResumeVersion = (resumeUrl, resumeVersion) => {
-  if (resumeVersion) {
-    return resumeVersion;
-  }
-
-  try {
-    const parsedUrl = new URL(resumeUrl);
-    const versionMatch = parsedUrl.pathname.match(/\/v(\d+)\//);
-
-    if (versionMatch) {
-      return Number(versionMatch[1]);
-    }
-  } catch {
-    // Ignore malformed URL inputs; validation happens earlier.
-  }
-
-  return undefined;
-};
-
-export const proxyResumePreview = async (req, res) => {
-  try {
-    const resumeUrl = req.query.url;
-    const resumePublicId = req.query.publicId;
-    const resumeVersion = getResumeVersion(req.query.url, req.query.version);
-
-    if (!resumeUrl || !isAllowedCloudinaryResumeUrl(resumeUrl)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid resume URL",
-      });
-    }
-
-    if (!resumePublicId) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing resume public ID",
-      });
-    }
-
-    const candidateIds = getResumeCandidateIds(resumeUrl, resumePublicId);
-
-    for (const candidateId of candidateIds) {
-      const candidateUrl = cloudinary.url(candidateId, {
-        resource_type: "raw",
-        type: "upload",
-        format: "pdf",
-        secure: true,
-        sign_url: true,
-        version: resumeVersion,
-      });
-
-      const response = await fetch(candidateUrl);
-
-      if (!response.ok) {
-        continue;
-      }
-
-      const buffer = Buffer.from(await response.arrayBuffer());
-
-      res.setHeader(
-        "Content-Type",
-        response.headers.get("content-type") || "application/pdf",
-      );
-      res.setHeader("Content-Length", buffer.length);
-
-      if (req.query.download === "1") {
-        res.setHeader("Content-Disposition", "attachment; filename=resume.pdf");
-      } else {
-        res.setHeader("Content-Disposition", "inline; filename=resume.pdf");
-      }
-
-      return res.status(200).send(buffer);
-    }
-
-    return res.status(404).json({
-      success: false,
-      message: "Unable to load resume",
-    });
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Server Error",
-    });
-  }
-};
+import path from "path";
+import supabase from "../../config/supabase.js";
 
 export const getStudentDashboard = async (req, res) => {
   try {
@@ -256,6 +131,7 @@ export const getStudentDashboard = async (req, res) => {
     });
   }
 };
+
 export const createStudentProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -392,7 +268,9 @@ export const uploadResume = async (req, res) => {
       });
     }
 
-    const studentProfile = await StudentProfile.findOne({ user: userId });
+    const studentProfile = await StudentProfile.findOne({
+      user: userId,
+    });
 
     if (!studentProfile) {
       return res.status(404).json({
@@ -401,34 +279,53 @@ export const uploadResume = async (req, res) => {
       });
     }
 
-    // 🗑 Delete old resume from Cloudinary
-    if (studentProfile.resume?.public_id) {
-      await cloudinary.uploader.destroy(studentProfile.resume.public_id, {
-        resource_type: "raw",
+    // ==========================
+    // Delete old resume
+    // ==========================
+    if (studentProfile.resume?.filename) {
+      await supabase.storage
+        .from("resumes")
+        .remove([studentProfile.resume.filename]);
+    }
+
+    const { data: buckets, error: bucketError } =
+      await supabase.storage.listBuckets();
+
+    // ==========================
+    // Upload new PDF
+    // ==========================
+    const fileBuffer = req.file.buffer;
+
+    const fileName = `${userId}_${Date.now()}.pdf`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("resumes")
+      .upload(fileName, fileBuffer, {
+        contentType: "application/pdf",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      return res.status(500).json({
+        success: false,
+        uploadError,
       });
     }
 
-    // ☁️ Upload new resume
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      resource_type: "raw",
-      folder: "pms/resumes",
-      format: "pdf",
-    });
+    // ==========================
+    // Get Public URL
+    // ==========================
+    const { data } = supabase.storage.from("resumes").getPublicUrl(fileName);
 
-    // 🧹 Delete local file (VERY IMPORTANT)
-    fs.unlinkSync(req.file.path);
-
-    // 💾 Save in DB
+    // ==========================
+    // Save in MongoDB
+    // ==========================
     studentProfile.resume = {
-      url: result.secure_url,
-      public_id: result.public_id,
-      format: result.format || "pdf",
-      version: result.version,
+      url: data.publicUrl,
+      filename: fileName,
     };
 
     await studentProfile.save();
-
-    console.log(req.file);
 
     res.status(200).json({
       success: true,
@@ -437,15 +334,9 @@ export const uploadResume = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-
-    // cleanup if error occurs
-    if (req.file?.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-
     res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: error.message || "Server Error",
     });
   }
 };

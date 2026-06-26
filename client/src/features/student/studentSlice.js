@@ -64,6 +64,8 @@ const initialState = {
   },
 
   loading: false,
+  profilePicUploadLoading: false,
+  resumeUploadLoading: false,
 
   error: null,
 
@@ -228,11 +230,11 @@ const studentSlice = createSlice({
 
     builder
       .addCase(uploadResume.pending, (state) => {
-        state.loading = true;
+        state.resumeUploadLoading = true;
       })
 
       .addCase(uploadResume.fulfilled, (state, action) => {
-        state.loading = false;
+        state.resumeUploadLoading = false;
 
         if (state.profile) {
           state.profile.resume = action.payload.resume;
@@ -242,7 +244,7 @@ const studentSlice = createSlice({
       })
 
       .addCase(uploadResume.rejected, (state, action) => {
-        state.loading = false;
+        state.resumeUploadLoading = false;
 
         state.error = action.payload?.message || "Resume upload failed";
       });
@@ -253,11 +255,11 @@ const studentSlice = createSlice({
 
     builder
       .addCase(uploadProfilePicture.pending, (state) => {
-        state.loading = true;
+        state.profilePicUploadLoading = true;
       })
 
       .addCase(uploadProfilePicture.fulfilled, (state, action) => {
-        state.loading = false;
+        state.profilePicUploadLoading = false;
 
         if (state.profile) {
           state.profile.profilePicture = action.payload.profilePicture;
@@ -267,7 +269,7 @@ const studentSlice = createSlice({
       })
 
       .addCase(uploadProfilePicture.rejected, (state, action) => {
-        state.loading = false;
+        state.profilePicUploadLoading = false;
 
         state.error =
           action.payload?.message || "Profile picture upload failed";

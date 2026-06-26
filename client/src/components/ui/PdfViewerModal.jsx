@@ -1,10 +1,6 @@
 import Modal from "./Modal";
 
 const PdfViewerModal = ({ open, onClose, url, title = "Resume Preview" }) => {
-  const downloadUrl = url
-    ? `${url}${url.includes("?") ? "&" : "?"}download=1`
-    : "";
-
   return (
     <Modal open={open} title={title} onClose={onClose}>
       <div className="space-y-4">
@@ -18,18 +14,19 @@ const PdfViewerModal = ({ open, onClose, url, title = "Resume Preview" }) => {
           )}
         </div>
 
-        {downloadUrl && (
+        {url && (
           <div className="flex justify-end gap-3">
             <a
-              href={downloadUrl}
+              href={url}
               download
+              target="_blank"
               className="rounded-xl bg-slate-100 px-4 py-2 font-medium text-slate-700 transition hover:bg-slate-200"
             >
               Download
             </a>
 
             <a
-              href={downloadUrl}
+              href={url}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white transition hover:bg-indigo-700"

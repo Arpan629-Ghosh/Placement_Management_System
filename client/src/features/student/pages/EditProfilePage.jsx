@@ -16,14 +16,15 @@ import { Upload, Save, ArrowLeft } from "lucide-react";
 import { studentSidebarMenu } from "../constants/SidebarMenu";
 import PdfViewerModal from "@/components/ui/PdfViewerModal";
 import { optimizePdfFile } from "@/utils/optimizePdfFile";
-import { getResumeProxyUrl } from "@/utils/resumeUrl";
+// import { getResumeProxyUrl } from "@/utils/resumeUrl";
 import { toast } from "react-toastify";
 
 const EditProfilePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { profile, loading } = useSelector((state) => state.student);
+  const { profile, loading, resumeUploadLoading, profilePicUploadLoading } =
+    useSelector((state) => state.student);
   const [isResumePreviewOpen, setIsResumePreviewOpen] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -103,12 +104,13 @@ const EditProfilePage = () => {
   useEffect(() => {
     if (!resumeFile) {
       setResumePreviewUrl(
-        getResumeProxyUrl(
-          profile?.resume?.url || "",
-          profile?.resume?.public_id || "",
-          profile?.resume?.format || "pdf",
-          profile?.resume?.version || "",
-        ),
+        // getResumeProxyUrl(
+        //   profile?.resume?.url || "",
+        //   profile?.resume?.public_id || "",
+        //   profile?.resume?.format || "pdf",
+        //   profile?.resume?.version || "",
+        // ),
+        profile?.resume?.url || "",
       );
       return;
     }
@@ -347,7 +349,7 @@ const EditProfilePage = () => {
                   rounded-xl
                 "
               >
-                {loading ? "Uploading..." : "Upload Picture"}
+                {profilePicUploadLoading ? "Uploading..." : "Upload Picture"}
               </button>
             </div>
           </div>
@@ -380,7 +382,7 @@ const EditProfilePage = () => {
               "
             >
               <Upload size={18} />
-              {loading ? "Uploading..." : "Upload Resume"}
+              {resumeUploadLoading ? "Uploading..." : "Upload Resume"}
             </button>
 
             {resumePreviewUrl && (

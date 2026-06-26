@@ -12,7 +12,6 @@ import {
   updateStudentProfile,
   uploadResume,
   uploadProfilePicture,
-  proxyResumePreview,
   getStudentDashboard,
   getJobDetails,
   getApplicationStatus,
@@ -22,7 +21,7 @@ import imageUpload from "../../middlewares/upload/imageUpload.js";
 
 const router = express.Router();
 
-router.get("/resume/preview", proxyResumePreview);
+// router.get("/resume/preview", proxyResumePreview);
 
 router.get("/dashboard", authMiddleware, isStudent, getStudentDashboard);
 
