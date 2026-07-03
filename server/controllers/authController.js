@@ -1,78 +1,102 @@
 import User from "../models/User.js";
 import EmailOTP from "../models/EmailOTP.js";
 import bcrypt from "bcrypt";
-import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../utils/sendEmail.js";
+import mongoose from "mongoose";
 
 // --> Send Email Helper
 
-const sendOTPEmail = async (EmailOTP, otp) => {
-  const transporter = nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 587,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
-  });
-
-  await transporter.sendMail({
-    from: `"PMS System" <${process.env.SENDER_EMAIL}>`,
-    to: EmailOTP,
+export const sendOTPEmail = async (email, otp) => {
+  await sendEmail({
+    to: email,
     subject: "Verify your Email - PMS",
     html: `
       <h3>Your Email Verification Code</h3>
-      <p>Your OTP is: <b>${otp}</b></p>
-      <p>This OTP will expire in 5 minutes.</p>
-      `,
+      <p>Your OTP is <b>${otp}</b></p>
+      <p>This OTP expires in 5 minutes.</p>
+    `,
   });
 };
 
 //Register User
 export const registerUser = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
     const { name, email, password, role } = req.body;
 
-    //check if user exists
-    const isExist = await User.findOne({ email });
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
 
-    if (isExist) {
-      return res.status(400).json({ message: "Email already registered" });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already registered",
+      });
     }
 
-    //Hash password
-    const hash = await bcrypt.hash(password, 10);
+    session.startTransaction();
 
-    //Create user
-    const newUser = await User.create({
-      name,
-      email,
-      passwordHash: hash,
-      role: role.toLowerCase(),
-    });
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    //Genarate OTP
+    // Create user
+    const [newUser] = await User.create(
+      [
+        {
+          name,
+          email,
+          passwordHash,
+          role: role.toLowerCase(),
+        },
+      ],
+      { session },
+    );
+
+    // Remove any previous OTP
+    await EmailOTP.deleteMany({ email }, { session });
+
+    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // save OTP
-    await EmailOTP.create({
-      email,
-      otp,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-    });
+    // Save OTP
+    await EmailOTP.create(
+      [
+        {
+          email,
+          otp,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        },
+      ],
+      { session },
+    );
 
-    // send Email
+    // Send email
+    // If this throws an error, transaction will rollback
     await sendOTPEmail(email, otp);
 
+    // Commit transaction
+    await session.commitTransaction();
+
     return res.status(201).json({
+      success: true,
       message:
-        "Registration successful. Check your email for OTP verification. ",
+        "Registration successful. Check your email for OTP verification.",
       userId: newUser._id,
     });
   } catch (error) {
+    // Rollback everything
+    await session.abortTransaction();
+
     console.error("Register Error:", error);
-    res.status(500).json({ message: "Server error" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Registration failed. Please try again.",
+    });
+  } finally {
+    session.endSession();
   }
 };
 // Get current user
