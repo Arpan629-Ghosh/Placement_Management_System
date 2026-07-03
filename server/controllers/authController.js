@@ -90,6 +90,7 @@ export const registerUser = async (req, res) => {
     await session.abortTransaction();
 
     console.error("Register Error:", error);
+    console.log("Transaction aborted due to error:", error.message);
 
     return res.status(500).json({
       success: false,
