@@ -167,10 +167,10 @@ const RecruiterApprovals = () => {
             renderActions={(row) => (
               <div className="flex gap-2">
                 <button
-                  onClick={() => handleApprove(row.user._id)}
+                  onClick={() => handleApprove(row.user?._id)}
                   disabled={
                     row.approvalStatus === "approved" ||
-                    actionLoading.id === row.user._id
+                    actionLoading.id === row.user?._id
                   }
                   className="
     px-3
@@ -181,17 +181,17 @@ const RecruiterApprovals = () => {
     disabled:opacity-50
   "
                 >
-                  {actionLoading.id === row.user._id &&
+                  {actionLoading.id === row.user?._id &&
                   actionLoading.type === "approve"
                     ? "Approving..."
                     : "Approve"}
                 </button>
 
                 <button
-                  onClick={() => handleReject(row.user._id)}
+                  onClick={() => handleReject(row.user?._id)}
                   disabled={
                     row.approvalStatus === "rejected" ||
-                    actionLoading.id === row.user._id
+                    actionLoading.id === row.user?._id
                   }
                   className="
     px-3
@@ -202,7 +202,7 @@ const RecruiterApprovals = () => {
     disabled:opacity-50
   "
                 >
-                  {actionLoading.id === row.user._id &&
+                  {actionLoading.id === row.user?._id &&
                   actionLoading.type === "reject"
                     ? "Rejecting..."
                     : "Reject"}
