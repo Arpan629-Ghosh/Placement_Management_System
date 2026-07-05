@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
+import studentDashboard from "@/assets/screenshots/student-dashboard.png";
+import recruiterDashboard from "@/assets/screenshots/recruiter-dashboard.png";
+import adminDashboard from "@/assets/screenshots/admin-dashboard.png";
 
 const features = [
   {
     title: "Student Dashboard",
     subtitle: "Everything students need for placements in one place.",
-    image: "/src/assets/screenshots/student-dashboard.png", // Replace
+    image: studentDashboard,
     points: [
       "Real-time job notifications",
       "Profile completion tracking",
@@ -16,7 +19,7 @@ const features = [
   {
     title: "Recruiter Dashboard",
     subtitle: "Powerful hiring tools for recruiters.",
-    image: "/src/assets/screenshots/recruiter-dashboard.png", // Replace
+    image: recruiterDashboard, // Replace with actual image import
     points: [
       "Create job openings",
       "Manage applicants",
@@ -28,12 +31,12 @@ const features = [
   {
     title: "Admin Control Panel",
     subtitle: "Complete control over the placement ecosystem.",
-    image: "/src/assets/screenshots/admin-dashboard.png", // Replace
+    image: adminDashboard, // Replace with actual image import
     points: [
       "User management",
       "Placement analytics",
       "Recruiter approval",
-      "Report Genarating",
+      "Report Generating",
       "Statistical analysis",
     ],
   },
