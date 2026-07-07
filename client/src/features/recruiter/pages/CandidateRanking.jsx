@@ -9,7 +9,7 @@ import CandidateRankingList from "../components/ai/candidateRanking/CandidateRan
 import CandidateRankingSkeleton from "../components/ai/candidateRanking/CandidateRankingSkeleton";
 import CandidateRankingEmpty from "../components/ai/candidateRanking/CandidateRankingEmpty";
 
-import { recruiterSidebarMenu } from "../constants/SidebarMenu";
+import { recruiterSidebarMenu } from "../constants/sidebarMenu";
 
 import { getRecruiterJobs, getRankedApplicants } from "../recruiterThunks";
 
