@@ -55,7 +55,7 @@ const CandidateRanking = () => {
       navbarTitle="AI Candidate Ranking"
       navbarSubtitle="Select a job to view AI ranked applicants."
       userName={profile?.user?.name}
-      designation={profile?.designation}
+      department={profile?.companyName}
       profilePicture={profile?.companyLogo?.url}
     >
       <div className="space-y-8">
