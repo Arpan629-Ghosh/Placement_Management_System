@@ -14,6 +14,7 @@ import {
   getDashboard,
   getJobDetails,
   getApplicationStatus,
+  getRecommendedJobs,
 } from "./studentThunks";
 
 const initialState = {
@@ -66,6 +67,9 @@ const initialState = {
   loading: false,
   profilePicUploadLoading: false,
   resumeUploadLoading: false,
+
+  recommendedJobs: [],
+  recommendedJobsLoading: false,
 
   error: null,
 
@@ -238,6 +242,7 @@ const studentSlice = createSlice({
 
         if (state.profile) {
           state.profile.resume = action.payload.resume;
+          state.profile.resumeAnalysis = action.payload.analysis;
         }
 
         state.successMessage = action.payload.message;
@@ -421,6 +426,24 @@ const studentSlice = createSlice({
 
         state.error =
           action.payload?.message || "Failed to fetch application status";
+      });
+
+    // ==============================
+    // GET JOB RECOMMENDATIONS
+    // ==============================
+
+    builder
+      .addCase(getRecommendedJobs.pending, (state) => {
+        state.recommendedJobsLoading = true;
+      })
+
+      .addCase(getRecommendedJobs.fulfilled, (state, action) => {
+        state.recommendedJobsLoading = false;
+        state.recommendedJobs = action.payload.recommendations;
+      })
+
+      .addCase(getRecommendedJobs.rejected, (state) => {
+        state.recommendedJobsLoading = false;
       });
   },
 });

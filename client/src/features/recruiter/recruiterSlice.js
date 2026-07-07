@@ -16,6 +16,7 @@ import {
   getRecruiterApplicationDetails,
   getAllApplications,
   getAllInterviews,
+  getRankedApplicants,
 } from "./recruiterThunks";
 
 const initialState = {
@@ -33,6 +34,11 @@ const initialState = {
 
   isApproved: false,
   applicationDetails: null,
+
+  rankedCandidates: [],
+  rankedCandidatesLoading: false,
+  totalApplicants: 0,
+  analyzedCandidates: 0,
 
   applicationDetailsLoading: false,
   applicationsFetched: false,
@@ -424,6 +430,28 @@ const recruiterSlice = createSlice({
         state.interviewLoading = false;
 
         state.error = action.payload?.message || "Failed to fetch interviews";
+      });
+    // =======================================
+    // AI Candidate Ranking
+    // =======================================
+
+    builder
+      .addCase(getRankedApplicants.pending, (state) => {
+        state.rankedCandidatesLoading = true;
+      })
+
+      .addCase(getRankedApplicants.fulfilled, (state, action) => {
+        state.rankedCandidatesLoading = false;
+
+        state.rankedCandidates = action.payload.rankedCandidates || [];
+
+        state.totalApplicants = action.payload.totalApplicants || 0;
+
+        state.analyzedCandidates = action.payload.analyzedCandidates || 0;
+      })
+
+      .addCase(getRankedApplicants.rejected, (state) => {
+        state.rankedCandidatesLoading = false;
       });
   },
 });

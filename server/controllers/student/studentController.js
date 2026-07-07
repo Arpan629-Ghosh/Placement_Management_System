@@ -7,6 +7,9 @@ import fs from "fs";
 import sharp from "sharp";
 import path from "path";
 import supabase from "../../config/supabase.js";
+import { extractResumeText } from "../../ai/extractResumeText.js";
+import { analyzeResume } from "../../ai/resume.service.js";
+import { recommendJobs } from "../../recommendation/recommendation.service.js";
 
 export const getStudentDashboard = async (req, res) => {
   try {
@@ -296,6 +299,12 @@ export const uploadResume = async (req, res) => {
     // ==========================
     const fileBuffer = req.file.buffer;
 
+    // ==========================
+    // Extract Resume Text
+    // ==========================
+
+    const resumeText = await extractResumeText(fileBuffer);
+
     const fileName = `${userId}_${Date.now()}.pdf`;
 
     const { error: uploadError } = await supabase.storage
@@ -313,6 +322,12 @@ export const uploadResume = async (req, res) => {
     }
 
     // ==========================
+    // AI Resume Analysis
+    // ==========================
+
+    const analysis = await analyzeResume(resumeText);
+
+    // ==========================
     // Get Public URL
     // ==========================
     const { data } = supabase.storage.from("resumes").getPublicUrl(fileName);
@@ -325,12 +340,19 @@ export const uploadResume = async (req, res) => {
       filename: fileName,
     };
 
+    studentProfile.resumeAnalysis = {
+      ...analysis,
+      analyzedAt: new Date(),
+    };
+
     await studentProfile.save();
 
     res.status(200).json({
       success: true,
       message: "Resume uploaded successfully",
       resume: studentProfile.resume,
+
+      analysis: studentProfile.resumeAnalysis,
     });
   } catch (error) {
     console.error(error);
@@ -817,6 +839,49 @@ export const getApplicationStatus = async (req, res) => {
       applied: !!application,
     });
   } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+export const getRecommendedJobs = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const student = await StudentProfile.findOne({
+      user: userId,
+    });
+
+    if (!student?.resumeAnalysis) {
+      return res.status(400).json({
+        success: false,
+        message: "Upload your resume first.",
+      });
+    }
+
+    const jobs = await Job.find({
+      status: "open",
+    }).populate(
+      "recruiter",
+      `
+        companyName
+        companyLogo
+        companyWebsite
+        designation
+      `,
+    );
+
+    const recommendations = recommendJobs(student.resumeAnalysis, jobs);
+
+    res.json({
+      success: true,
+      recommendations,
+    });
+  } catch (err) {
+    console.error(err);
+
     res.status(500).json({
       success: false,
       message: "Server Error",

@@ -94,6 +94,49 @@ const studentProfileSchema = new mongoose.Schema(
       enum: ["open", "placed", "not_looking"],
       default: "open",
     },
+
+    resumeAnalysis: {
+      resumeScore: Number,
+
+      domain: String,
+
+      skills: [String],
+
+      projects: [
+        {
+          title: String,
+          description: String,
+          technologies: [String],
+        },
+      ],
+
+      experience: [
+        {
+          title: String,
+          company: String,
+          duration: String,
+          description: [String],
+        },
+      ],
+
+      education: [
+        {
+          degree: String,
+          institution: String,
+          dates: String,
+          details: String,
+        },
+      ],
+
+      missingSkills: [String],
+      strengths: [],
+
+      weaknesses: [],
+
+      suggestions: [String],
+
+      analyzedAt: Date,
+    },
   },
   {
     timestamps: true,

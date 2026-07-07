@@ -129,3 +129,12 @@ export const getApplicationStatusAPI = async (jobId) => {
 
   return res.data;
 };
+
+// ==============================
+// JOB RECOMMENDATIONS
+// ==============================
+
+export const getRecommendedJobsAPI = async () => {
+  const res = await axios.get("/student/recommended-jobs");
+  return res.data;
+};

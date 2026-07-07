@@ -14,6 +14,7 @@ import {
   getDashboardAPI,
   getJobDetailsAPI,
   getApplicationStatusAPI,
+  getRecommendedJobsAPI,
 } from "./studentApi";
 
 // ======================================
@@ -204,6 +205,26 @@ export const getApplicationStatus = createAsyncThunk(
       return await getApplicationStatusAPI(jobId);
     } catch (error) {
       return rejectWithValue(error.response?.data);
+    }
+  },
+);
+
+// ==============================
+// GET JOB RECOMMENDATIONS
+// ==============================
+
+export const getRecommendedJobs = createAsyncThunk(
+  "student/getRecommendedJobs",
+  async (_, thunkAPI) => {
+    try {
+      return await getRecommendedJobsAPI();
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          success: false,
+          message: "Unable to fetch recommendations",
+        },
+      );
     }
   },
 );

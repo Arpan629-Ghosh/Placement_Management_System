@@ -2,6 +2,7 @@ import Job from "../../models/Job.js";
 import User from "../../models/User.js";
 import RecruiterProfile from "../../models/RecruiterProfile.js";
 import { createNotification } from "../../services/notificationService.js";
+import { analyzeJob } from "../../ai/job.service.js";
 
 export const createJob = async (req, res) => {
   try {
@@ -27,9 +28,19 @@ export const createJob = async (req, res) => {
       });
     }
 
+    // ===============================
+    // Create Job
+    // ===============================
     const job = await Job.create({
       recruiter: recruiterProfile._id,
       ...req.body,
+      pendingAnalysis: true,
+      jobAnalysis: {
+        aiStatus: "pending",
+        extractedSkills: [],
+        preferredSkills: [],
+        keywords: [],
+      },
     });
 
     const populatedJob = await Job.findById(job._id).populate(
@@ -37,29 +48,77 @@ export const createJob = async (req, res) => {
       "companyName companyLogo approvalStatus",
     );
 
-    // Notify students
+    // ===============================
+    // Notify Students
+    // ===============================
     const students = await User.find({ role: "student" });
 
-    for (const student of students) {
-      await createNotification({
-        recipient: student._id,
-        type: "job",
-        message: `New job posted: ${job.title}`,
-        meta: {
-          jobId: job._id,
-        },
-      });
-    }
+    await Promise.all(
+      students.map((student) =>
+        createNotification({
+          recipient: student._id,
+          type: "job",
+          message: `New job posted: ${job.title}`,
+          meta: {
+            jobId: job._id,
+          },
+        }),
+      ),
+    );
 
+    // ===============================
+    // Send Response Immediately
+    // ===============================
     res.status(201).json({
       success: true,
       message: "Job created successfully",
       data: populatedJob,
     });
+
+    // ===============================
+    // Background AI Analysis
+    // ===============================
+    (async () => {
+      try {
+        const analysis = await analyzeJob({
+          title: job.title,
+          description: job.description,
+          requirements: job.requiredSkills,
+        });
+
+        job.jobAnalysis = {
+          ...analysis,
+          aiStatus: "completed",
+          analyzedAt: new Date(),
+        };
+
+        job.pendingAnalysis = false;
+
+        await job.save();
+
+        console.log(`✅ AI analysis completed for Job: ${job.title}`);
+      } catch (err) {
+        console.log("⚠️ Background AI failed:", err.message);
+
+        job.jobAnalysis = {
+          extractedSkills: job.requiredSkills || [],
+          preferredSkills: [],
+          keywords: [],
+          experienceLevel: "Not Specified",
+          education: "Not Specified",
+          analyzedAt: null,
+          aiStatus: "failed",
+        };
+
+        job.pendingAnalysis = true;
+
+        await job.save();
+      }
+    })();
   } catch (error) {
     console.error("Create Job Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Server Error",
     });

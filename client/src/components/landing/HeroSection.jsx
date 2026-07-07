@@ -31,8 +31,8 @@ const HeroSection = () => {
         </p>
 
         <p className="text-gray-400 text-sm">
-          🚀 Trusted by leading companies | ⚡ Real-time updates | 🔒 Secure &
-          scalable
+          🚀 AI-powered modern placement ecosystem | ⚡ Real-time updates | 🔒
+          Secure & scalable
         </p>
       </motion.div>
 

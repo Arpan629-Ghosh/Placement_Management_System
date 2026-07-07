@@ -15,6 +15,7 @@ import {
   getStudentDashboard,
   getJobDetails,
   getApplicationStatus,
+  getRecommendedJobs,
 } from "../../controllers/student/studentController.js";
 import upload from "../../middlewares/upload/multer.js";
 import imageUpload from "../../middlewares/upload/imageUpload.js";
@@ -77,4 +78,6 @@ router.get(
   isStudent,
   getApplicationDetails,
 );
+
+router.get("/recommended-jobs", authMiddleware, isStudent, getRecommendedJobs);
 export default router;

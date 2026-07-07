@@ -14,6 +14,8 @@ const features = [
       "Resume upload & management",
       "Application history",
       "Interview status tracking",
+      "AI-powered resume analysis",
+      "Smart job recommendation",
     ],
   },
   {
@@ -26,6 +28,7 @@ const features = [
       "Shortlist candidates",
       "Interview scheduling",
       "Offer management",
+      "AI-powered candidate ranking",
     ],
   },
   {

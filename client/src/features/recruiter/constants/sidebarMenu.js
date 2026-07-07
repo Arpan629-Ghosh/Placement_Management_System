@@ -4,6 +4,7 @@ import {
   Briefcase,
   FileText,
   CalendarDays,
+  Medal,
 } from "lucide-react";
 
 export const recruiterSidebarMenu = [
@@ -38,5 +39,11 @@ export const recruiterSidebarMenu = [
     name: "Interviews",
     path: "/recruiter/interviews",
     icon: CalendarDays,
+  },
+
+  {
+    name: "AI Candidate Ranking",
+    path: "/recruiter/ranking",
+    icon: Medal,
   },
 ];

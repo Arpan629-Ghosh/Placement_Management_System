@@ -16,6 +16,7 @@ import {
   getRecruiterApplicationDetailsAPI,
   getAllApplicationsAPI,
   getAllInterviewsAPI,
+  getRankedApplicantsAPI,
 } from "./recruiterAPI";
 
 // ======================================
@@ -201,6 +202,25 @@ export const getAllInterviews = createAsyncThunk(
       return await getAllInterviewsAPI();
     } catch (error) {
       return rejectWithValue(error.response?.data);
+    }
+  },
+);
+
+// ============================================
+// AI Candidate Ranking
+// ============================================
+
+export const getRankedApplicants = createAsyncThunk(
+  "recruiter/getRankedApplicants",
+  async (jobId, thunkAPI) => {
+    try {
+      return await getRankedApplicantsAPI(jobId);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: "Failed to fetch ranked candidates",
+        },
+      );
     }
   },
 );

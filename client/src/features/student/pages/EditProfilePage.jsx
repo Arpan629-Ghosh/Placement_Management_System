@@ -12,7 +12,7 @@ import {
   uploadProfilePicture,
 } from "../studentThunks";
 
-import { Upload, Save, ArrowLeft } from "lucide-react";
+import { Upload, Save, ArrowLeft, Sparkles } from "lucide-react";
 import { studentSidebarMenu } from "../constants/SidebarMenu";
 import PdfViewerModal from "@/components/ui/PdfViewerModal";
 import { optimizePdfFile } from "@/utils/optimizePdfFile";
@@ -386,11 +386,14 @@ const EditProfilePage = () => {
             </button>
 
             {resumePreviewUrl && (
-              <button
-                type="button"
-                onClick={() => setIsResumePreviewOpen(true)}
-                className="
-                  bg-slate-100
+              <div className="flex flex-col md:flex-row gap-4 items-center">
+                <button
+                  type="button"
+                  onClick={() => setIsResumePreviewOpen(true)}
+                  className="
+                  bg-gradient-to-r
+                  from-slate-100
+                  to-slate-200
                   text-slate-700
                   px-5
                   py-2
@@ -399,15 +402,32 @@ const EditProfilePage = () => {
                   items-center
                   gap-2
                 "
-              >
-                Preview Resume
-              </button>
+                >
+                  Preview Resume
+                </button>
+                <button
+                  className="bg-gradient-to-r from-indigo-500 to-cyan-500
+                hover:from-indigo-600 hover:to-cyan-600
+                transition
+                text-white
+                px-5
+                py-2
+                rounded-xl
+                flex
+                items-center
+                gap-2"
+                  onClick={() => navigate("/student/resume-intelligence")}
+                >
+                  <Sparkles size={18} />
+                  View AI Analysis
+                </button>
+              </div>
             )}
           </div>
 
           {profile?.resume?.url && (
             <p className="mt-4 text-sm text-slate-500">
-              Current resume is available in the preview above.
+              Current resume is available to preview and analyze result.
             </p>
           )}
         </div>

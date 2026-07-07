@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@google/genai": "^2.10.0",
     "@supabase/supabase-js": "^2.108.2",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
@@ -25,6 +26,7 @@
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.4",
+    "pdf-parse": "^2.4.5",
     "sharp": "^0.34.5",
     "sib-api-v3-sdk": "^8.5.0",
     "socket.io": "^4.8.3",

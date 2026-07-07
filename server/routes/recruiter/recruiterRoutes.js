@@ -24,6 +24,7 @@ import {
   scheduleInterview,
   updateApplicationStatus,
 } from "../../controllers/recruiter/applicationController.js";
+import { getRankedApplicants } from "../../controllers/recruiter/recruiterRankingController.js";
 
 const router = express.Router();
 
@@ -127,5 +128,13 @@ router.get(
   isRecruiter,
   isRecruiterApproved,
   getAllInterviews,
+);
+
+router.get(
+  "/jobs/:jobId/ranking",
+  authMiddleware,
+  isRecruiter,
+  isRecruiterApproved,
+  getRankedApplicants,
 );
 export default router;

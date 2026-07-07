@@ -43,6 +43,9 @@ import RecruiterApplicationsPage from "../features/recruiter/pages/RecruiterAppl
 import RecruiterApplicationDetailsPage from "../features/recruiter/pages/RecruiterApplicationDetailsPage";
 import RecruiterInterviewPage from "../features/recruiter/pages/RecruiterInterviewPage";
 import NotificationPage from "../features/student/pages/NotificationPage";
+import ResumeAnalysis from "../features/student/pages/ResumeAnalysis";
+import JobRecommandation from "../features/student/pages/JobRecommandation";
+import CandidateRanking from "../features/recruiter/pages/CandidateRanking";
 
 const AppRoutes = () => {
   return (
@@ -183,6 +186,26 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/student/resume-intelligence"
+        element={
+          <ProtectedRoute role="student">
+            <StudentProfileGuard>
+              <ResumeAnalysis />
+            </StudentProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/smart-job-match"
+        element={
+          <ProtectedRoute role="student">
+            <StudentProfileGuard>
+              <JobRecommandation />
+            </StudentProfileGuard>
+          </ProtectedRoute>
+        }
+      />
       {/* =========================================
     RECRUITER PROFILE CREATION
 ========================================= */}
@@ -277,6 +300,16 @@ const AppRoutes = () => {
           <ProtectedRoute role="recruiter">
             <RecruiterProfileGuard>
               <RecruiterInterviewPage />
+            </RecruiterProfileGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/ranking"
+        element={
+          <ProtectedRoute role="recruiter">
+            <RecruiterProfileGuard>
+              <CandidateRanking />
             </RecruiterProfileGuard>
           </ProtectedRoute>
         }

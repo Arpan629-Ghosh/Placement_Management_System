@@ -1,4 +1,11 @@
-import { LayoutDashboard, Briefcase, FileText, User } from "lucide-react";
+import {
+  LayoutDashboard,
+  Briefcase,
+  FileText,
+  User,
+  Sparkles,
+  BrainCircuit,
+} from "lucide-react";
 
 export const studentSidebarMenu = [
   {
@@ -20,5 +27,15 @@ export const studentSidebarMenu = [
     name: "Profile",
     path: "/student/profile",
     icon: User,
+  },
+  {
+    name: "Resume Intelligence",
+    path: "/student/resume-intelligence",
+    icon: Sparkles,
+  },
+  {
+    name: "Smart Job Match",
+    path: "/student/smart-job-match",
+    icon: BrainCircuit,
   },
 ];

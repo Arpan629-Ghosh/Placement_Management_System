@@ -64,6 +64,31 @@ const jobSchema = new mongoose.Schema(
       enum: ["open", "closed"],
       default: "open",
     },
+
+    jobAnalysis: {
+      extractedSkills: [String],
+
+      preferredSkills: [String],
+
+      experienceLevel: String,
+
+      education: String,
+
+      keywords: [String],
+
+      aiStatus: {
+        type: String,
+        enum: ["pending", "completed", "failed"],
+        default: "pending",
+      },
+
+      analyzedAt: Date,
+    },
+
+    pendingAnalysis: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

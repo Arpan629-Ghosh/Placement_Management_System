@@ -112,3 +112,13 @@ export const getAllInterviewsAPI = async () => {
   const res = await axios.get("/recruiter/interviews");
   return res.data;
 };
+
+// ==============================
+// AI Candidate Ranking
+// ==============================
+
+export const getRankedApplicantsAPI = async (jobId) => {
+  const res = await axios.get(`/recruiter/jobs/${jobId}/ranking`);
+
+  return res.data;
+};
