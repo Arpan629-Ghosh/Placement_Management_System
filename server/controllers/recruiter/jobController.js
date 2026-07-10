@@ -3,6 +3,81 @@ import User from "../../models/User.js";
 import RecruiterProfile from "../../models/RecruiterProfile.js";
 import { createNotification } from "../../services/notificationService.js";
 import { analyzeJob } from "../../ai/job.service.js";
+import { sendEmail } from "../../utils/sendEmail.js";
+
+const formatSalary = (salaryRange) => {
+  if (!salaryRange) return "Compensation details available upon request";
+
+  const min = salaryRange.min;
+  const max = salaryRange.max;
+
+  if (min && max) return `$${min} - $${max}`;
+  if (min) return `From $${min}`;
+  if (max) return `Up to $${max}`;
+
+  return "Compensation details available upon request";
+};
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+const buildJobPostingEmailHtml = (job) => {
+  const recruiter = job.recruiter || {};
+  const companyName = recruiter.companyName || job.companyName || "Our Team";
+  const location = job.location || "Remote";
+  const salary = formatSalary(job.salaryRange);
+  const deadline = formatDate(job.applicationDeadline);
+  const skills =
+    (job.requiredSkills || []).slice(0, 6).join(" • ") ||
+    "Details available in the portal";
+  const frontendUrl =
+    process.env.CLIENT_URL || "https://pms-frontend-5y7o.onrender.com";
+
+  return `
+    <div style="font-family: Arial, sans-serif; background:#f6f8fb; padding:24px; color:#1f2937;">
+      <div style="max-width:680px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+        <div style="background:linear-gradient(135deg,#2563eb,#7c3aed); padding:28px 32px; color:#ffffff;">
+          <h1 style="margin:0 0 8px; font-size:28px;">New Job Opportunity</h1>
+          <p style="margin:0; font-size:16px; opacity:0.95;">A fresh opportunity has just been posted for talented students.</p>
+        </div>
+        <div style="padding:28px 32px;">
+          <h2 style="margin:0 0 10px; font-size:24px; color:#111827;">${job.title}</h2>
+          <p style="margin:0 0 16px; font-size:16px; color:#4b5563;">${companyName}</p>
+
+          <div style="display:grid; gap:10px; margin:16px 0 20px;">
+            <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px;">
+              <strong>Location:</strong> ${location}
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px;">
+              <strong>Type:</strong> ${job.jobType?.replace(/_/g, " ") || "Not specified"}
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px;">
+              <strong>Salary:</strong> ${salary}
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px;">
+              <strong>Deadline:</strong> ${deadline}
+            </div>
+          </div>
+
+          <h3 style="margin:0 0 8px; font-size:18px; color:#111827;">About the role</h3>
+          <p style="margin:0 0 16px; line-height:1.6; color:#374151;">${job.description}</p>
+
+          <h3 style="margin:0 0 8px; font-size:18px; color:#111827;">Required skills</h3>
+          <p style="margin:0 0 20px; line-height:1.6; color:#374151;">${skills}</p>
+
+          <a href="${frontendUrl}" style="display:inline-block; background:#2563eb; color:#ffffff; text-decoration:none; padding:12px 18px; border-radius:999px; font-weight:bold;">
+            Explore this opportunity
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+};
 
 export const createJob = async (req, res) => {
   try {
@@ -62,6 +137,16 @@ export const createJob = async (req, res) => {
           meta: {
             jobId: job._id,
           },
+        }),
+      ),
+    );
+
+    await Promise.all(
+      students.map((student) =>
+        sendEmail({
+          to: student.email,
+          subject: `New Opportunity: ${job.title} at ${populatedJob.recruiter?.companyName || job.companyName}`,
+          html: buildJobPostingEmailHtml(populatedJob),
         }),
       ),
     );

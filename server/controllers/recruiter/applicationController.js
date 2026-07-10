@@ -3,6 +3,98 @@ import Job from "../../models/Job.js";
 import { createNotification } from "../../services/notificationService.js";
 import RecruiterProfile from "../../models/RecruiterProfile.js";
 import StudentProfile from "../../models/StudentProfile.js";
+import { sendEmail } from "../../utils/sendEmail.js";
+
+const formatStatusLabel = (status) =>
+  status?.replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
+
+const formatDateTime = (value) => {
+  if (!value) return "To be confirmed";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "To be confirmed";
+
+  return date.toLocaleString("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+};
+
+const buildApplicationStatusEmailHtml = ({
+  studentName,
+  companyName,
+  jobTitle,
+  status,
+  remarks,
+}) => {
+  const statusLabel = formatStatusLabel(status);
+  const frontendUrl =
+    process.env.CLIENT_URL || "https://pms-frontend-5y7o.onrender.com";
+  const remarksText = remarks || "No additional remarks were provided.";
+
+  return `
+    <div style="font-family: Arial, sans-serif; background:#f6f8fb; padding:24px; color:#1f2937;">
+      <div style="max-width:680px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+        <div style="background:linear-gradient(135deg,#2563eb,#7c3aed); padding:28px 32px; color:#ffffff;">
+          <h1 style="margin:0 0 8px; font-size:28px;">Application Update</h1>
+          <p style="margin:0; font-size:16px; opacity:0.95;">Hello ${studentName || "there"}, your application status has been updated.</p>
+        </div>
+        <div style="padding:28px 32px;">
+          <h2 style="margin:0 0 10px; font-size:24px; color:#111827;">${jobTitle}</h2>
+          <p style="margin:0 0 16px; font-size:16px; color:#4b5563;">${companyName}</p>
+          <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:14px; margin-bottom:16px;">
+            <strong>Status:</strong> ${statusLabel}
+          </div>
+          <p style="margin:0 0 10px; line-height:1.6; color:#374151;">${remarksText}</p>
+          <a href="${frontendUrl}" style="display:inline-block; background:#2563eb; color:#ffffff; text-decoration:none; padding:12px 18px; border-radius:999px; font-weight:bold;">
+            View your application
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+const buildInterviewScheduledEmailHtml = ({
+  studentName,
+  companyName,
+  jobTitle,
+  date,
+  mode,
+  location,
+  meetingLink,
+}) => {
+  const frontendUrl =
+    process.env.CLIENT_URL || "https://pms-frontend-5y7o.onrender.com";
+  const meetingDetails = meetingLink
+    ? `<p style="margin:0 0 10px; line-height:1.6; color:#374151;"><strong>Meeting link:</strong> <a href="${meetingLink}" style="color:#2563eb;">${meetingLink}</a></p>`
+    : "";
+
+  return `
+    <div style="font-family: Arial, sans-serif; background:#f6f8fb; padding:24px; color:#1f2937;">
+      <div style="max-width:680px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+        <div style="background:linear-gradient(135deg,#2563eb,#7c3aed); padding:28px 32px; color:#ffffff;">
+          <h1 style="margin:0 0 8px; font-size:28px;">Interview Scheduled</h1>
+          <p style="margin:0; font-size:16px; opacity:0.95;">Hello ${studentName || "there"}, your interview has been scheduled.</p>
+        </div>
+        <div style="padding:28px 32px;">
+          <h2 style="margin:0 0 10px; font-size:24px; color:#111827;">${jobTitle}</h2>
+          <p style="margin:0 0 16px; font-size:16px; color:#4b5563;">${companyName}</p>
+          <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:14px; margin-bottom:16px;">
+            <p style="margin:0 0 8px; color:#374151;"><strong>Date:</strong> ${formatDateTime(date)}</p>
+            <p style="margin:0 0 8px; color:#374151;"><strong>Mode:</strong> ${mode || "To be confirmed"}</p>
+            <p style="margin:0; color:#374151;"><strong>Location:</strong> ${location || "To be confirmed"}</p>
+          </div>
+          ${meetingDetails}
+          <a href="${frontendUrl}" style="display:inline-block; background:#2563eb; color:#ffffff; text-decoration:none; padding:12px 18px; border-radius:999px; font-weight:bold;">
+            View interview details
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+};
 
 export const getAllApplications = async (req, res) => {
   try {
@@ -157,12 +249,12 @@ export const updateApplicationStatus = async (req, res) => {
     }
 
     const application = await Application.findById(applicationId).populate({
-  path: "job",
-  populate: {
-    path: "recruiter",
-    select: "companyName",
-  },
-});
+      path: "job",
+      populate: {
+        path: "recruiter",
+        select: "companyName",
+      },
+    });
 
     if (!application) {
       return res.status(404).json({
@@ -172,14 +264,14 @@ export const updateApplicationStatus = async (req, res) => {
     }
 
     if (
-  application.job.recruiter._id.toString() !==
-  recruiterProfile._id.toString()
-) {
-  return res.status(403).json({
-    success: false,
-    message: "Unauthorized",
-  });
-}
+      application.job.recruiter._id.toString() !==
+      recruiterProfile._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
     if (status === "selected") {
       if (!application.interview?.scheduled || !application.interview?.date) {
         return res.status(400).json({
@@ -246,48 +338,59 @@ export const updateApplicationStatus = async (req, res) => {
       },
     };
 
+    const companyName =
+      updatedApplication.job?.recruiter?.companyName || "Company";
 
-const companyName =
-  updatedApplication.job?.recruiter?.companyName || "Company";
+    const jobTitle = updatedApplication.job?.title || "Position";
 
-const jobTitle = updatedApplication.job?.title || "Position";
+    let notificationMessage = "";
 
-let notificationMessage = "";
+    switch (status) {
+      case "under_review":
+        notificationMessage = `Your application for ${jobTitle} at ${companyName} is under review.`;
+        break;
 
-switch (status) {
-  case "under_review":
-    notificationMessage = `Your application for ${jobTitle} at ${companyName} is under review.`;
-    break;
+      case "shortlisted":
+        notificationMessage = `You have been shortlisted for ${jobTitle} at ${companyName}.`;
+        break;
 
-  case "shortlisted":
-    notificationMessage = `You have been shortlisted for ${jobTitle} at ${companyName}.`;
-    break;
+      case "interview_scheduled":
+        notificationMessage = `${companyName} scheduled an interview for ${jobTitle}.`;
+        break;
 
-  case "interview_scheduled":
-    notificationMessage = `${companyName} scheduled an interview for ${jobTitle}.`;
-    break;
+      case "selected":
+        notificationMessage = `Congratulations! ${companyName} has selected you for ${jobTitle}.`;
+        break;
 
-  case "selected":
-    notificationMessage = `Congratulations! ${companyName} has selected you for ${jobTitle}.`;
-    break;
+      case "rejected":
+        notificationMessage = `Your application for ${jobTitle} at ${companyName} was not selected.`;
+        break;
 
-  case "rejected":
-    notificationMessage = `Your application for ${jobTitle} at ${companyName} was not selected.`;
-    break;
-
-  default:
-    notificationMessage = `Your application status for ${jobTitle} at ${companyName} changed to ${status.replaceAll("_", " ")}.`;
-}
+      default:
+        notificationMessage = `Your application status for ${jobTitle} at ${companyName} changed to ${status.replaceAll("_", " ")}.`;
+    }
 
     await createNotification({
-  recipient: application.student,
-  type: "application",
-  message: notificationMessage,
-  meta: {
-    applicationId: application._id,
-    status,
-  },
-});
+      recipient: application.student,
+      type: "application",
+      message: notificationMessage,
+      meta: {
+        applicationId: application._id,
+        status,
+      },
+    });
+
+    await sendEmail({
+      to: updatedApplication.student.email,
+      subject: `Application Update: ${jobTitle}`,
+      html: buildApplicationStatusEmailHtml({
+        studentName: updatedApplication.student.name,
+        companyName,
+        jobTitle,
+        status,
+        remarks: remarks || "",
+      }),
+    });
 
     return res.status(200).json({
       success: true,
@@ -405,28 +508,42 @@ export const scheduleInterview = async (req, res) => {
     };
 
     const companyName =
-  updatedApplication.job?.recruiter?.companyName || "Company";
+      updatedApplication.job?.recruiter?.companyName || "Company";
 
-const jobTitle = updatedApplication.job?.title || "Position";
+    const jobTitle = updatedApplication.job?.title || "Position";
 
-const formattedDate = new Date(date).toLocaleString("en-IN", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
+    const formattedDate = new Date(date).toLocaleString("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
 
-await createNotification({
-  recipient: application.student,
-  type: "interview",
-  message: `${companyName} scheduled your interview for ${jobTitle} on ${formattedDate}`,
-  meta: {
-    applicationId: application._id,
-    status: "interview_scheduled",
-    companyName,
-    jobTitle,
-    interviewDate: date,
-    interviewMode: mode,
-  },
-});
+    await createNotification({
+      recipient: application.student,
+      type: "interview",
+      message: `${companyName} scheduled your interview for ${jobTitle} on ${formattedDate}`,
+      meta: {
+        applicationId: application._id,
+        status: "interview_scheduled",
+        companyName,
+        jobTitle,
+        interviewDate: date,
+        interviewMode: mode,
+      },
+    });
+
+    await sendEmail({
+      to: updatedApplication.student.email,
+      subject: `Interview Scheduled: ${jobTitle}`,
+      html: buildInterviewScheduledEmailHtml({
+        studentName: updatedApplication.student.name,
+        companyName,
+        jobTitle,
+        date,
+        mode,
+        location,
+        meetingLink,
+      }),
+    });
 
     res.status(200).json({
       success: true,
